@@ -20,7 +20,7 @@ import {
   serialize,
   Filter,
 } from '@mikro-orm/sqlite';
-import { mockLogger } from '../helpers';
+import { mockLogger } from '../../helpers';
 
 enum PublisherType {
   LOCAL = 'local',
