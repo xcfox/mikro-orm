@@ -1,4 +1,4 @@
-import type { Collection, Reference, OptionalProps } from '@mikro-orm/core';
+import type { Collection, Reference, OptionalProps, InferEntity } from '@mikro-orm/core';
 import { EntitySchema, t } from '@mikro-orm/core';
 import type { IBaseEntity5 } from './BaseEntity5';
 import type { IAuthor4 } from './Author4';
@@ -39,3 +39,14 @@ export const Book4 = new EntitySchema<IBook4, IBaseEntity5>({
     meta: { type: 'json', nullable: true },
   },
 });
+
+export const Book5 = EntitySchema.define({
+  name: 'Book5',
+  properties: t => ({
+    title: t.string(),
+    price: t.float({ nullable: true }),
+    priceTaxed: t.float({ formula: alias => `${alias}.price * 1.19`, persist: false }),
+  }),
+});
+
+export type IBook5 = InferEntity<typeof Book5>;

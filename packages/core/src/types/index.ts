@@ -19,7 +19,7 @@ import { StringType } from './StringType';
 import { TextType } from './TextType';
 import { TimeType } from './TimeType';
 import { TinyIntType } from './TinyIntType';
-import { IType, TransformContext, Type } from './Type';
+import { IType, TransformContext, Type, InferJSType } from './Type';
 import { Uint8ArrayType } from './Uint8ArrayType';
 import { UnknownType } from './UnknownType';
 import { UuidType } from './UuidType';
@@ -27,7 +27,7 @@ import { UuidType } from './UuidType';
 export {
   Type, DateType, TimeType, DateTimeType, BigIntType, BlobType, Uint8ArrayType, ArrayType, EnumArrayType, EnumType,
   JsonType, IntegerType, SmallIntType, TinyIntType, MediumIntType, FloatType, DoubleType, BooleanType, DecimalType,
-  StringType, UuidType, TextType, UnknownType, TransformContext, IntervalType, IType, CharacterType,
+  StringType, UuidType, TextType, UnknownType, TransformContext, IntervalType, IType, CharacterType, InferJSType,
 };
 
 export const types = {

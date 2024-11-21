@@ -137,7 +137,18 @@ export abstract class Type<JSType = string, DBType = JSType> {
     return ret === '[Object]' ? `[${name}]` : name + ' ' + ret;
   }
 
+
+  /**
+   * @internal
+   */
+  '~types'?: {
+    jsType: JSType;
+    dbType: DBType;
+  };
+
 }
+
+export type InferJSType<Property extends Type<unknown, unknown>> = NonNullable<Property['~types']>['jsType'];
 
 Object.defineProperties(Type.prototype, {
   __mappedType: { value: true, enumerable: false, writable: false },

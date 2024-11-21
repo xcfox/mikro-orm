@@ -1,4 +1,5 @@
 import {
+  type InferEntityFromProperties,
   EntityMetadata,
   type AnyEntity,
   type EntityKey,
@@ -28,7 +29,7 @@ import type {
 import type { EntityRepository } from '../entity/EntityRepository';
 import { BaseEntity } from '../entity/BaseEntity';
 import { Cascade, ReferenceKind } from '../enums';
-import { Type } from '../types';
+import { type InferJSType, t, Type } from '../types';
 import { Utils } from '../utils';
 import { EnumArrayType } from '../types/EnumArrayType';
 
@@ -50,6 +51,11 @@ export type EntitySchemaMetadata<Entity, Base = never> =
   & { extends?: string | EntitySchema<Base> }
   & { properties?: { [Key in keyof OmitBaseProps<Entity, Base> as CleanKeys<OmitBaseProps<Entity, Base>, Key>]-?: EntitySchemaProperty<ExpandProperty<NonNullable<Entity[Key]>>, Entity> } };
 
+export interface PropertyFactory<Value> {
+  (options?: Omit<PropertyOptions<unknown, Value>, 'type'> & {nullable?: false}): PropertyOptions<unknown, Value>;
+  (options?: Omit<PropertyOptions<unknown, Value>, 'type'> & {nullable: true}): PropertyOptions<unknown, Value | null | undefined>;
+}
+
 export class EntitySchema<Entity = any, Base = never> {
 
   /**
@@ -57,6 +63,53 @@ export class EntitySchema<Entity = any, Base = never> {
    * so we can use the class in `entities` option just like the EntitySchema instance.
    */
   static REGISTRY = new Map<AnyEntity, EntitySchema>();
+
+  static define<Properties extends Record<string, PropertyOptions<unknown, unknown>>>(
+    meta: Omit<Partial<EntityMetadata<InferEntityFromProperties<Properties>>>, 'properties' | 'extends'> & {
+      name: string;
+      properties: ((factories: typeof EntitySchema.propertyFactories) => Properties) | Properties;
+    },
+  ): EntitySchema<InferEntityFromProperties<Properties>, never> {
+    const { properties: getProperties, ...options } = meta;
+    const properties = typeof getProperties === 'function' ? getProperties(EntitySchema.propertyFactories) : getProperties;
+    return new EntitySchema({ properties, ...options } as any);
+  }
+
+  static defineProperties<Properties extends Record<string, PropertyOptions<unknown, unknown>>>(properties: (factories: typeof EntitySchema.propertyFactories) => Properties): Properties {
+    return properties(EntitySchema.propertyFactories);
+  }
+
+  static propertyFactories = {
+    date: EntitySchema.propertyFactory(t.date),
+    time: EntitySchema.propertyFactory(t.time),
+    datetime: EntitySchema.propertyFactory(t.datetime),
+    bigint: EntitySchema.propertyFactory(t.bigint),
+    blob: EntitySchema.propertyFactory(t.blob),
+    uint8array: EntitySchema.propertyFactory(t.uint8array),
+    array: EntitySchema.propertyFactory(t.array),
+    enumArray: EntitySchema.propertyFactory(t.enumArray),
+    enum: EntitySchema.propertyFactory(t.enum),
+    json: EntitySchema.propertyFactory(t.json),
+    integer: EntitySchema.propertyFactory(t.integer),
+    smallint: EntitySchema.propertyFactory(t.smallint),
+    tinyint: EntitySchema.propertyFactory(t.tinyint),
+    mediumint: EntitySchema.propertyFactory(t.mediumint),
+    float: EntitySchema.propertyFactory(t.float),
+    double: EntitySchema.propertyFactory(t.double),
+    boolean: EntitySchema.propertyFactory(t.boolean),
+    decimal: EntitySchema.propertyFactory(t.decimal),
+    character: EntitySchema.propertyFactory(t.character),
+    string: EntitySchema.propertyFactory(t.string),
+    uuid: EntitySchema.propertyFactory(t.uuid),
+    text: EntitySchema.propertyFactory(t.text),
+    interval: EntitySchema.propertyFactory(t.interval),
+    unknown: EntitySchema.propertyFactory(t.unknown),
+  };
+
+  static propertyFactory<ValueType extends Type<unknown, unknown>>(type: Constructor<ValueType>): PropertyFactory<NonNullable<InferJSType<ValueType>>> {
+    return options => ({ type, ...options });
+  }
+
 
   private readonly _meta = new EntityMetadata<Entity>();
   private internal = false;
@@ -403,4 +456,10 @@ export class EntitySchema<Entity = any, Base = never> {
     } as EntityProperty<T>;
   }
 
+  '~types'?: {
+    entity: Entity;
+  };
+
 }
+
+export type InferEntity<T extends EntitySchema> = NonNullable<T['~types']>['entity'];

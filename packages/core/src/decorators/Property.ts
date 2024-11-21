@@ -10,6 +10,7 @@ import type {
   AnyString,
   AnyEntity,
   EntityKey,
+  WithInference,
 } from '../typings';
 import type { Type, types } from '../types';
 import type { EntityManager } from '../EntityManager';
@@ -50,7 +51,7 @@ export function Property<T extends object>(options: PropertyOptions<T> = {}) {
   };
 }
 
-export interface PropertyOptions<Owner> {
+export interface PropertyOptions<Owner, Value = any> extends WithInference<Value> {
   /**
    * Alias for `fieldName`.
    */
@@ -108,12 +109,12 @@ export interface PropertyOptions<Owner> {
    * Automatically set the property value when entity gets created, executed during flush operation.
    * @param entity
    */
-  onCreate?: (entity: Owner, em: EntityManager) => any;
+  onCreate?: (entity: Owner, em: EntityManager) => Value;
   /**
    * Automatically update the property value every time entity gets updated, executed during flush operation.
    * @param entity
    */
-  onUpdate?: (entity: Owner, em: EntityManager) => any;
+  onUpdate?: (entity: Owner, em: EntityManager) => Value;
   /**
    * Specify default column value for {@link https://mikro-orm.io/docs/schema-generator Schema Generator}.
    * This is a runtime value, assignable to the entity property. (SQL only)
