@@ -37,6 +37,7 @@ export const FooBar5 = EntitySchema.define({
   properties: t => ({
     array: t.array(),
     numbers: t.property(new ArrayType(i => +i)),
+    object: t.json<{ foo: string; bar: number }>(),
   }),
 });
 

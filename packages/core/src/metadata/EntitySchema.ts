@@ -78,6 +78,13 @@ export interface TypedPropertyFactory {
   <Value extends TypeType>(type: Value, options?: Omit<PropertyOptions<unknown, InferType<Value>>, 'type'> & { nullable: true; ref: true }): PropertyOptions<unknown, Ref<InferType<Value>> | null | undefined>;
 }
 
+export interface JsonPropertyFactory {
+  <Payload = any>(options?: Omit<PropertyOptions<unknown, Payload>, 'type'> & { nullable?: false; ref?: false }): PropertyOptions<unknown, Payload>;
+  <Payload = any>(options?: Omit<PropertyOptions<unknown, Payload>, 'type'> & { nullable: true; ref?: false }): PropertyOptions<unknown, Payload | null | undefined>;
+  <Payload = any>(options?: Omit<PropertyOptions<unknown, Payload>, 'type'> & { nullable?: false; ref: true }): PropertyOptions<unknown, Ref<Payload>>;
+  <Payload = any>(options?: Omit<PropertyOptions<unknown, Payload>, 'type'> & { nullable: true; ref: true }): PropertyOptions<unknown, Ref<Payload> | null | undefined>;
+}
+
 export interface ManyToOneFactory {
   <Target extends object>(entity: () => EntityName<Target>, options?: ManyToOneOptions<unknown, Target> & { nullable?: false }): ({ kind: ReferenceKind.MANY_TO_ONE } & TypeDef<Target> & ManyToOneOptions<unknown, Target>);
   <Target extends object>(entity: () => EntityName<Target>, options?: ManyToOneOptions<unknown, Target> & { nullable: true }): ({ kind: ReferenceKind.MANY_TO_ONE } & TypeDef<Target> & ManyToOneOptions<unknown, Target, Collection<Target> | null | undefined>);
@@ -173,7 +180,7 @@ export class EntitySchema<Entity = any, Base = never> {
     blob: EntitySchema.propertyFactory(t.blob),
     uint8array: EntitySchema.propertyFactory(t.uint8array),
     array: EntitySchema.propertyFactory(t.array),
-    json: EntitySchema.propertyFactory(t.json),
+    json: EntitySchema.propertyFactory(t.json) as JsonPropertyFactory,
     integer: EntitySchema.propertyFactory(t.integer),
     smallint: EntitySchema.propertyFactory(t.smallint),
     tinyint: EntitySchema.propertyFactory(t.tinyint),
