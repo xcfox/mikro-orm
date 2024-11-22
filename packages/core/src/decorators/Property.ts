@@ -277,7 +277,7 @@ export interface PropertyOptions<Owner, Value = any> extends WithInference<Value
   ignoreSchemaChanges?: ('type' | 'extra' | 'default')[];
 }
 
-export interface ReferenceOptions<Owner, Target> extends PropertyOptions<Owner> {
+export interface ReferenceOptions<Owner, Target, ValueType = Target> extends PropertyOptions<Owner, ValueType> {
   /** Set target entity type. */
   entity?: string | (() => EntityName<Target>);
 
