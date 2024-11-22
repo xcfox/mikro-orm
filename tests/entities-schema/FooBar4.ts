@@ -1,4 +1,4 @@
-import type { OptionalProps } from '@mikro-orm/core';
+import type { InferEntity, OptionalProps } from '@mikro-orm/core';
 import { ArrayType, BlobType, EntitySchema, JsonType, Uint8ArrayType } from '@mikro-orm/core';
 import type { IFooBaz4, IBaseEntity5 } from './index';
 import { BaseEntity5 } from './index';
@@ -31,3 +31,13 @@ export const FooBar4 = new EntitySchema<IFooBar4, IBaseEntity5>({
     virtual: { type: String, persist: false },
   },
 });
+
+export const FooBar5 = EntitySchema.define({
+  name: 'FooBar5',
+  properties: t => ({
+    array: t.array(),
+    numbers: t.property(new ArrayType(i => +i)),
+  }),
+});
+
+export type IFooBar5 = InferEntity<typeof FooBar5>;

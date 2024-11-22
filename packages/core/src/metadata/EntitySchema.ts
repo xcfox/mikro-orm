@@ -60,6 +60,24 @@ export interface PropertyFactory<Value> {
   (options?: Omit<PropertyOptions<unknown, Value>, 'type'> & { nullable: true; ref: true }): PropertyOptions<unknown, Ref<Value> | null | undefined>;
 }
 
+type InferType<T extends TypeType> = T extends string ? any :
+  T extends NumberConstructor ? number :
+  T extends StringConstructor ? string :
+  T extends BooleanConstructor ? boolean :
+  T extends DateConstructor ? Date :
+  T extends ArrayConstructor ? string[] :
+  T extends Constructor<infer TType> ?
+    TType extends Type<any, any> ? NonNullable<InferJSType<TType>> : TType :
+  T extends Type<any, any> ? NonNullable<InferJSType<T>> :
+  never;
+
+export interface TypedPropertyFactory {
+  <Value extends TypeType>(type: Value, options?: Omit<PropertyOptions<unknown, InferType<Value>>, 'type'> & { nullable?: false; ref?: false }): PropertyOptions<unknown, InferType<Value>>;
+  <Value extends TypeType>(type: Value, options?: Omit<PropertyOptions<unknown, InferType<Value>>, 'type'> & { nullable: true; ref?: false }): PropertyOptions<unknown, InferType<Value> | null | undefined>;
+  <Value extends TypeType>(type: Value, options?: Omit<PropertyOptions<unknown, InferType<Value>>, 'type'> & { nullable?: false; ref: true }): PropertyOptions<unknown, Ref<InferType<Value>>>;
+  <Value extends TypeType>(type: Value, options?: Omit<PropertyOptions<unknown, InferType<Value>>, 'type'> & { nullable: true; ref: true }): PropertyOptions<unknown, Ref<InferType<Value>> | null | undefined>;
+}
+
 export interface ManyToOneFactory {
   <Target extends object>(entity: () => EntityName<Target>, options?: ManyToOneOptions<unknown, Target> & { nullable?: false }): ({ kind: ReferenceKind.MANY_TO_ONE } & TypeDef<Target> & ManyToOneOptions<unknown, Target>);
   <Target extends object>(entity: () => EntityName<Target>, options?: ManyToOneOptions<unknown, Target> & { nullable: true }): ({ kind: ReferenceKind.MANY_TO_ONE } & TypeDef<Target> & ManyToOneOptions<unknown, Target, Collection<Target> | null | undefined>);
@@ -116,8 +134,12 @@ export class EntitySchema<Entity = any, Base = never> {
   }
 
   static propertyFactory<ValueType extends Type<unknown, unknown>>(type: Constructor<ValueType>): PropertyFactory<NonNullable<InferJSType<ValueType>>> {
-    return (options => ({ type, ...options })) as PropertyFactory<NonNullable<InferJSType<ValueType>>>;
+    return (options => ({ ...options, type })) as PropertyFactory<NonNullable<InferJSType<ValueType>>>;
   }
+
+  protected static typePropertyFactory: TypedPropertyFactory = (type, options) => {
+    return { ...options, type };
+  };
 
   protected static manyToOneFactory: ManyToOneFactory = (entity, options) => {
     return { ...options, kind: ReferenceKind.MANY_TO_ONE, ref: true, entity };
@@ -166,6 +188,8 @@ export class EntitySchema<Entity = any, Base = never> {
     text: EntitySchema.propertyFactory(t.text),
     interval: EntitySchema.propertyFactory(t.interval),
     unknown: EntitySchema.propertyFactory(t.unknown),
+
+    property: EntitySchema.typePropertyFactory,
 
     manyToOne: EntitySchema.manyToOneFactory,
     oneToOne: EntitySchema.oneToOneFactory,
