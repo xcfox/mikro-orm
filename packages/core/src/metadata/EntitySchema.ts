@@ -1,4 +1,5 @@
 import {
+  type Ref,
   type InferEntityFromProperties,
   EntityMetadata,
   type AnyEntity,
@@ -53,8 +54,10 @@ export type EntitySchemaMetadata<Entity, Base = never> =
   & { properties?: { [Key in keyof OmitBaseProps<Entity, Base> as CleanKeys<OmitBaseProps<Entity, Base>, Key>]-?: EntitySchemaProperty<ExpandProperty<NonNullable<Entity[Key]>>, Entity> } };
 
 export interface PropertyFactory<Value> {
-  (options?: Omit<PropertyOptions<unknown, Value>, 'type'> & { nullable?: false }): PropertyOptions<unknown, Value>;
-  (options?: Omit<PropertyOptions<unknown, Value>, 'type'> & { nullable: true }): PropertyOptions<unknown, Value | null | undefined>;
+  (options?: Omit<PropertyOptions<unknown, Value>, 'type'> & { nullable?: false; ref?: false }): PropertyOptions<unknown, Value>;
+  (options?: Omit<PropertyOptions<unknown, Value>, 'type'> & { nullable: true; ref?: false }): PropertyOptions<unknown, Value | null | undefined>;
+  (options?: Omit<PropertyOptions<unknown, Value>, 'type'> & { nullable?: false; ref: true }): PropertyOptions<unknown, Ref<Value>>;
+  (options?: Omit<PropertyOptions<unknown, Value>, 'type'> & { nullable: true; ref: true }): PropertyOptions<unknown, Ref<Value> | null | undefined>;
 }
 
 export interface ManyToOneFactory {
@@ -113,7 +116,7 @@ export class EntitySchema<Entity = any, Base = never> {
   }
 
   static propertyFactory<ValueType extends Type<unknown, unknown>>(type: Constructor<ValueType>): PropertyFactory<NonNullable<InferJSType<ValueType>>> {
-    return options => ({ type, ...options });
+    return (options => ({ type, ...options })) as PropertyFactory<NonNullable<InferJSType<ValueType>>>;
   }
 
   protected static manyToOneFactory: ManyToOneFactory = (entity, options) => {
