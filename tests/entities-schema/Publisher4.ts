@@ -1,8 +1,8 @@
-import type { Collection, OptionalProps } from '@mikro-orm/core';
+import type { Collection, InferEntity, OptionalProps } from '@mikro-orm/core';
 import { EntitySchema } from '@mikro-orm/core';
 import type { IBaseEntity5 } from './BaseEntity5';
-import type { IBook4 } from './Book4';
-import type { ITest4 } from './Test4';
+import { Book4, type IBook4 } from './Book4';
+import { Test4, type ITest4 } from './Test4';
 import { BaseEntity5 } from './BaseEntity5';
 
 export interface IPublisher4 extends Omit<IBaseEntity5, typeof OptionalProps> {
@@ -30,3 +30,16 @@ export const Publisher4 = new EntitySchema<IPublisher4, IBaseEntity5>({
     tests: { kind: 'm:n', entity:  'Test4', fixedOrder: true },
   },
 });
+
+export const Publisher5 = EntitySchema.define({
+  name:'Publisher5',
+  properties: t => ({
+     name: t.string({ default:'asd' }),
+     type: t.enum(() => PublisherType, { default: PublisherType.LOCAL }),
+     enum3: t.enum([1, 2, 3] as const, { nullable: true }),
+     books: t.oneToMany(() => Book4, { mappedBy:'publisher' }),
+     tests: t.manyToMany(() =>  Test4, { fixedOrder: true }),
+   }),
+ });
+
+export type IPublisher5 = InferEntity<typeof Publisher5>;

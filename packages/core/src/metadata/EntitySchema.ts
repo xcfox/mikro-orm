@@ -54,12 +54,12 @@ export type EntitySchemaMetadata<Entity, Base = never> =
 
 export interface PropertyFactory<Value> {
   (options?: Omit<PropertyOptions<unknown, Value>, 'type'> & { nullable?: false }): PropertyOptions<unknown, Value>;
-  (options: Omit<PropertyOptions<unknown, Value>, 'type'> & { nullable: true }): PropertyOptions<unknown, Value | null | undefined>;
+  (options?: Omit<PropertyOptions<unknown, Value>, 'type'> & { nullable: true }): PropertyOptions<unknown, Value | null | undefined>;
 }
 
 export interface ManyToOneFactory {
   <Target extends object>(entity: () => EntityName<Target>, options?: ManyToOneOptions<unknown, Target> & { nullable?: false }): ({ kind: ReferenceKind.MANY_TO_ONE } & TypeDef<Target> & ManyToOneOptions<unknown, Target>);
-  <Target extends object>(entity: () => EntityName<Target>, options: ManyToOneOptions<unknown, Target> & { nullable: true }): ({ kind: ReferenceKind.MANY_TO_ONE } & TypeDef<Target> & ManyToOneOptions<unknown, Target, Collection<Target> | null | undefined>);
+  <Target extends object>(entity: () => EntityName<Target>, options?: ManyToOneOptions<unknown, Target> & { nullable: true }): ({ kind: ReferenceKind.MANY_TO_ONE } & TypeDef<Target> & ManyToOneOptions<unknown, Target, Collection<Target> | null | undefined>);
 }
 
 export interface OneToOneFactory {
@@ -80,6 +80,13 @@ export interface ManyToManyFactory {
 export interface EmbeddedFactory {
   <Target extends object>(entity: () => EntityName<Target>, options?: EmbeddedOptions & PropertyOptions<unknown> & { nullable?: false }): ({ kind: ReferenceKind.EMBEDDED } & EmbeddedTypeDef<Target> & EmbeddedOptions & PropertyOptions<unknown, Reference<Target>>);
   <Target extends object>(entity: () => EntityName<Target>, options?: EmbeddedOptions & PropertyOptions<unknown> & { nullable: true }): ({ kind: ReferenceKind.EMBEDDED } & EmbeddedTypeDef<Target> & EmbeddedOptions & PropertyOptions<unknown, Reference<Target> | null | undefined>);
+}
+
+export interface EnumFactory {
+  <EnumType>(items: () => Dictionary<EnumType>, option?: EnumOptions<unknown, EnumType> & { nullable?: false }) : ({ enum: true } & EnumOptions<unknown, EnumType>);
+  <EnumType>(items: () => Dictionary<EnumType>, option?: EnumOptions<unknown, EnumType> & { nullable: true }) : ({ enum: true } & EnumOptions<unknown, EnumType | null | undefined>);
+  <ItemTypes extends (number | string)[]>(items: ItemTypes, option?: EnumOptions<unknown, ItemTypes[number]> & { nullable?: false }) : ({ enum: true } & EnumOptions<unknown, ItemTypes[number]>);
+  <ItemTypes extends (number | string)[]>(items: ItemTypes, option?: EnumOptions<unknown, ItemTypes[number]> & { nullable: true }) : ({ enum: true } & EnumOptions<unknown, ItemTypes[number] | null | undefined>);
 }
 
 export class EntitySchema<Entity = any, Base = never> {
@@ -126,7 +133,11 @@ export class EntitySchema<Entity = any, Base = never> {
   };
 
   protected static embeddedFactory: EmbeddedFactory = (entity: () => any, options) => {
-    return { ...options, kind:ReferenceKind.EMBEDDED, entity };
+    return { ...options, kind: ReferenceKind.EMBEDDED, entity };
+  };
+
+  protected static enumFactory: EnumFactory = (items: (number | string)[] | (() => Dictionary), options?: EnumOptions<unknown>) => {
+    return { ...options, enum: true as const, items };
   };
 
   static propertyFactories = {
@@ -137,8 +148,6 @@ export class EntitySchema<Entity = any, Base = never> {
     blob: EntitySchema.propertyFactory(t.blob),
     uint8array: EntitySchema.propertyFactory(t.uint8array),
     array: EntitySchema.propertyFactory(t.array),
-    enumArray: EntitySchema.propertyFactory(t.enumArray),
-    enum: EntitySchema.propertyFactory(t.enum),
     json: EntitySchema.propertyFactory(t.json),
     integer: EntitySchema.propertyFactory(t.integer),
     smallint: EntitySchema.propertyFactory(t.smallint),
@@ -160,6 +169,8 @@ export class EntitySchema<Entity = any, Base = never> {
     oneToMany: EntitySchema.oneToManyFactory,
     manyToMany: EntitySchema.manyToManyFactory,
     embedded: EntitySchema.embeddedFactory,
+
+    enum: EntitySchema.enumFactory,
   };
 
   private readonly _meta = new EntityMetadata<Entity>();
