@@ -1,8 +1,8 @@
-import type { EmbeddedOptions, EnumOptions, ManyToManyOptions, ManyToOneOptions, OneToManyOptions, OneToOneOptions, PropertyOptions } from '../decorators';
+import type { EmbeddedOptions, EnumOptions, InferEntityFromProperties, ManyToManyOptions, ManyToOneOptions, OneToManyOptions, OneToOneOptions, PropertyOptions } from '../decorators';
 import { ReferenceKind } from '../enums';
 import { EntitySchema } from '../metadata/EntitySchema';
 import { types, type InferJSType, type Type } from '../types';
-import type { Constructor, Dictionary, EntityMetadata, EntityName, InferEntityFromProperties, Ref } from '../typings';
+import type { Constructor, Dictionary, EntityMetadata, EntityName, Ref } from '../typings';
 import type { Collection } from './Collection';
 import type { Reference } from './Reference';
 

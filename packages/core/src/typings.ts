@@ -74,6 +74,9 @@ export const HiddenProps = Symbol('HiddenProps');
 export const Config = Symbol('Config');
 
 // eslint-disable-next-line @typescript-eslint/naming-convention
+export const __types = Symbol('__types');
+
+// eslint-disable-next-line @typescript-eslint/naming-convention
 declare const __optional: unique symbol;
 
 // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -1240,20 +1243,3 @@ export type MetadataProcessor = (metadata: EntityMetadata[], platform: Platform)
  * The type of context that the user intends to inject.
  */
 export type ContextProvider<T> = MaybePromise<MikroORM> | ((type: T) => MaybePromise<MikroORM | EntityManager | EntityRepository<any> | { getEntityManager(): EntityManager }>);
-
-export interface WithInference<T> {
-  /**
-   * The value type of the property.
-   *
-   * @internal
-   */
-  '~types'?: {
-    value: T;
-  };
-}
-
-export type InferValue<Property extends WithInference<unknown>> = NonNullable<Property['~types']>['value'];
-
-export type InferEntityFromProperties<Properties extends Record<string, WithInference<unknown>>> = {
-  [K in keyof Properties]: InferValue<Properties[K]>;
-};

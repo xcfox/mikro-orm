@@ -10,7 +10,7 @@ import type {
   AnyString,
   AnyEntity,
   EntityKey,
-  WithInference,
+  __types,
 } from '../typings';
 import type { Type, types } from '../types';
 import type { EntityManager } from '../EntityManager';
@@ -51,7 +51,7 @@ export function Property<T extends object>(options: PropertyOptions<T> = {}) {
   };
 }
 
-export interface PropertyOptions<Owner, Value = any> extends WithInference<Value> {
+export interface PropertyOptions<Owner, Value = any> {
   /**
    * Alias for `fieldName`.
    */
@@ -275,7 +275,25 @@ export interface PropertyOptions<Owner, Value = any> extends WithInference<Value
    * @see https://mikro-orm.io/docs/defining-entities#sql-generated-columns
    */
   ignoreSchemaChanges?: ('type' | 'extra' | 'default')[];
+
+
+  /**
+   * The value type of the property.
+   *
+   * @internal
+   */
+  [__types]?: {
+    value: Value;
+  };
 }
+
+
+export type InferValue<Property extends PropertyOptions<unknown>> = NonNullable<Property[typeof __types]>['value'];
+
+export type InferEntityFromProperties<Properties extends Record<string, PropertyOptions<unknown>>> = {
+  [K in keyof Properties]: InferValue<Properties[K]>;
+};
+
 
 export interface ReferenceOptions<Owner, Target, ValueType = Target> extends PropertyOptions<Owner, ValueType> {
   /** Set target entity type. */

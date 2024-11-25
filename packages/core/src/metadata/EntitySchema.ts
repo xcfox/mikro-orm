@@ -1,5 +1,6 @@
 import {
   EntityMetadata,
+  __types,
   type AnyEntity,
   type EntityKey,
   type Constructor,
@@ -10,9 +11,8 @@ import {
   type CleanKeys,
   type ExpandProperty,
   type IsNever,
-  type EntityClass,
-} from '../typings';
-import type {
+  type EntityClass } from '../typings';
+ import type {
   EmbeddedOptions,
   EnumOptions,
   IndexOptions,
@@ -405,10 +405,13 @@ export class EntitySchema<Entity = any, Base = never> {
     } as EntityProperty<T>;
   }
 
-  '~types'?: {
+  /**
+   * @internal
+   */
+  [__types]?: {
     entity: Entity;
   };
 
 }
 
-export type InferEntity<T extends EntitySchema> = NonNullable<T['~types']>['entity'];
+export type InferEntity<T extends EntitySchema> = NonNullable<T[typeof __types]>['entity'];

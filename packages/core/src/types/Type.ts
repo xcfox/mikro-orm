@@ -1,6 +1,6 @@
 import { inspect } from 'node:util';
 import type { Platform } from '../platforms';
-import type { Constructor, EntityMetadata, EntityProperty } from '../typings';
+import { __types, type Constructor, type EntityMetadata, type EntityProperty } from '../typings';
 
 export interface TransformContext {
   fromQuery?: boolean;
@@ -141,14 +141,14 @@ export abstract class Type<JSType = string, DBType = JSType> {
   /**
    * @internal
    */
-  '~types'?: {
+  [__types]?: {
     jsType: JSType;
     dbType: DBType;
   };
 
 }
 
-export type InferJSType<Property extends Type<unknown, unknown>> = NonNullable<Property['~types']>['jsType'];
+export type InferJSType<Property extends Type<unknown, unknown>> = NonNullable<Property[typeof __types]>['jsType'];
 
 Object.defineProperties(Type.prototype, {
   __mappedType: { value: true, enumerable: false, writable: false },
