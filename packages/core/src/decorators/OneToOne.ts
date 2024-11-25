@@ -1,7 +1,6 @@
 import { type DeferMode, ReferenceKind } from '../enums';
 import { createOneToDecorator, type OneToManyOptions } from './OneToMany';
 import type { AnyString, EntityName } from '../typings';
-import type { Reference } from '../entity';
 
 export function OneToOne<Target, Owner>(
   entity?: OneToOneOptions<Owner, Target> | string | ((e: Owner) => EntityName<Target>),
@@ -13,7 +12,7 @@ export function OneToOne<Target, Owner>(
   return createOneToDecorator<Target, Owner>(entity as string, mappedBy, options, ReferenceKind.ONE_TO_ONE);
 }
 
-export interface OneToOneOptions<Owner, Target, ValueType = Target extends object ? Reference<Target> : never> extends Partial<Omit<OneToManyOptions<Owner, Target, ValueType>, 'orderBy'>> {
+export interface OneToOneOptions<Owner, Target, ValueType = Target> extends Partial<Omit<OneToManyOptions<Owner, Target, ValueType>, 'orderBy'>> {
   /** Set this side as owning. Owning side is where the foreign key is defined. This option is not required if you use `inversedBy` or `mappedBy` to distinguish owning and inverse side. */
   owner?: boolean;
 

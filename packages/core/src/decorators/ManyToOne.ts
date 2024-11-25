@@ -3,7 +3,6 @@ import { MetadataStorage, MetadataValidator } from '../metadata';
 import { Utils } from '../utils';
 import { type DeferMode, ReferenceKind } from '../enums';
 import type { AnyEntity, AnyString, EntityKey, EntityName, EntityProperty } from '../typings';
-import type { Collection } from '../entity';
 
 export function ManyToOne<T extends object, O>(
   entity: ManyToOneOptions<T, O> | string | ((e?: any) => EntityName<T>) = {},
@@ -20,7 +19,7 @@ export function ManyToOne<T extends object, O>(
   };
 }
 
-export interface ManyToOneOptions<Owner, Target, ValueType = Target extends object ? Collection<Target> : never> extends ReferenceOptions<Owner, Target, ValueType> {
+export interface ManyToOneOptions<Owner, Target, ValueType = Target> extends ReferenceOptions<Owner, Target, ValueType> {
   /** Point to the inverse side property name. */
   inversedBy?: (string & keyof Target) | ((e: Target) => any);
 

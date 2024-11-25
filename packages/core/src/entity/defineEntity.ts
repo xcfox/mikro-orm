@@ -47,13 +47,17 @@ export interface JsonPropertyFactory {
 }
 
 export interface ManyToOneFactory {
-  <Target extends object>(entity: () => EntityName<Target>, options?: ManyToOneOptions<unknown, Target> & { nullable?: false }): ({ kind: ReferenceKind.MANY_TO_ONE } & TypeDef<Target> & ManyToOneOptions<unknown, Target>);
-  <Target extends object>(entity: () => EntityName<Target>, options?: ManyToOneOptions<unknown, Target> & { nullable: true }): ({ kind: ReferenceKind.MANY_TO_ONE } & TypeDef<Target> & ManyToOneOptions<unknown, Target, Collection<Target> | null | undefined>);
+  <Target extends object>(entity: () => EntityName<Target>, options?: ManyToOneOptions<unknown, Target> & { nullable?: false; ref?: false }): ({ kind: ReferenceKind.MANY_TO_ONE } & TypeDef<Target> & ManyToOneOptions<unknown, Target, Target>);
+  <Target extends object>(entity: () => EntityName<Target>, options?: ManyToOneOptions<unknown, Target> & { nullable: true; ref?: false }): ({ kind: ReferenceKind.MANY_TO_ONE } & TypeDef<Target> & ManyToOneOptions<unknown, Target, Target | null | undefined>);
+  <Target extends object>(entity: () => EntityName<Target>, options?: ManyToOneOptions<unknown, Target> & { nullable?: false; ref: true }): ({ kind: ReferenceKind.MANY_TO_ONE } & TypeDef<Target> & ManyToOneOptions<unknown, Target, Reference<Target>>);
+  <Target extends object>(entity: () => EntityName<Target>, options?: ManyToOneOptions<unknown, Target> & { nullable: true; ref: true }): ({ kind: ReferenceKind.MANY_TO_ONE } & TypeDef<Target> & ManyToOneOptions<unknown, Target, Reference<Target> | null | undefined>);
 }
 
 export interface OneToOneFactory {
-  <Target extends object>(entity: () => EntityName<Target>, options?: OneToOneOptions<unknown, Target> & { nullable?: false }): ({ kind: ReferenceKind.ONE_TO_ONE } & TypeDef<Target> & OneToOneOptions<unknown, Target>);
-  <Target extends object>(entity: () => EntityName<Target>, options?: OneToOneOptions<unknown, Target> & { nullable: true }): ({ kind: ReferenceKind.ONE_TO_ONE } & TypeDef<Target> & OneToOneOptions<unknown, Target, Reference<Target> | null | undefined>);
+  <Target extends object>(entity: () => EntityName<Target>, options?: OneToOneOptions<unknown, Target> & { nullable?: false; ref?: false }): ({ kind: ReferenceKind.ONE_TO_ONE } & TypeDef<Target> & OneToOneOptions<unknown, Target, Target>);
+  <Target extends object>(entity: () => EntityName<Target>, options?: OneToOneOptions<unknown, Target> & { nullable: true; ref?: false }): ({ kind: ReferenceKind.ONE_TO_ONE } & TypeDef<Target> & OneToOneOptions<unknown, Target, Target | null | undefined>);
+  <Target extends object>(entity: () => EntityName<Target>, options?: OneToOneOptions<unknown, Target> & { nullable?: false; ref: true }): ({ kind: ReferenceKind.ONE_TO_ONE } & TypeDef<Target> & OneToOneOptions<unknown, Target, Reference<Target>>);
+  <Target extends object>(entity: () => EntityName<Target>, options?: OneToOneOptions<unknown, Target> & { nullable: true; ref: true }): ({ kind: ReferenceKind.ONE_TO_ONE } & TypeDef<Target> & OneToOneOptions<unknown, Target, Reference<Target> | null | undefined>);
 }
 
 export interface OneToManyFactory {
@@ -87,11 +91,11 @@ const typePropertyFactory: TypedPropertyFactory = (type, options) => {
 };
 
 const manyToOneFactory: ManyToOneFactory = (entity, options) => {
-  return { ...options, kind: ReferenceKind.MANY_TO_ONE, ref: true, entity };
+  return { ...options, kind: ReferenceKind.MANY_TO_ONE, entity };
 };
 
 const oneToOneFactory: OneToOneFactory = (entity, options) => {
-  return { ...options, kind: ReferenceKind.ONE_TO_ONE, ref: true, entity };
+  return { ...options, kind: ReferenceKind.ONE_TO_ONE, entity };
 };
 
 const oneToManyFactory: OneToManyFactory = (entity, options) => {
