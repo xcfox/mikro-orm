@@ -74,7 +74,7 @@ export const HiddenProps = Symbol('HiddenProps');
 export const Config = Symbol('Config');
 
 // eslint-disable-next-line @typescript-eslint/naming-convention
-export const __types = Symbol('__types');
+export declare const __types: unique symbol;
 
 // eslint-disable-next-line @typescript-eslint/naming-convention
 declare const __optional: unique symbol;

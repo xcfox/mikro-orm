@@ -276,13 +276,7 @@ export interface PropertyOptions<Owner, Value = any> {
    */
   ignoreSchemaChanges?: ('type' | 'extra' | 'default')[];
 
-
-  /**
-   * The value type of the property.
-   *
-   * @internal
-   */
-  [__types]?: {
+  readonly [__types]?: {
     value: Value;
   };
 }

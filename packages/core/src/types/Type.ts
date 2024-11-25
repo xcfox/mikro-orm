@@ -1,6 +1,6 @@
 import { inspect } from 'node:util';
 import type { Platform } from '../platforms';
-import { __types, type Constructor, type EntityMetadata, type EntityProperty } from '../typings';
+import type { __types, Constructor, EntityMetadata, EntityProperty } from '../typings';
 
 export interface TransformContext {
   fromQuery?: boolean;
@@ -138,10 +138,7 @@ export abstract class Type<JSType = string, DBType = JSType> {
   }
 
 
-  /**
-   * @internal
-   */
-  [__types]?: {
+  declare readonly [__types]?: {
     jsType: JSType;
     dbType: DBType;
   };

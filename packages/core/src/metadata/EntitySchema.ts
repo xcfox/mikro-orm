@@ -1,6 +1,6 @@
 import {
   EntityMetadata,
-  __types,
+  type __types,
   type AnyEntity,
   type EntityKey,
   type Constructor,
@@ -405,10 +405,7 @@ export class EntitySchema<Entity = any, Base = never> {
     } as EntityProperty<T>;
   }
 
-  /**
-   * @internal
-   */
-  [__types]?: {
+  declare readonly [__types]?: {
     entity: Entity;
   };
 
