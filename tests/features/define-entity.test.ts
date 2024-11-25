@@ -1,5 +1,5 @@
 import { EntitySchema, InferEntity, Reference, Collection } from '@mikro-orm/core';
-import { expectType } from 'tsd';
+import { IsExact, assert } from 'conditional-type-checks';
 
 describe('InferEntity', () => {
   const Bar = EntitySchema.define({
@@ -35,7 +35,7 @@ describe('InferEntity', () => {
       uuid: string;
     }
 
-    expectType<IFoo>({} as InferEntity<typeof Foo>);
+    assert<IsExact<IFoo, InferEntity<typeof Foo>>>(true);
   });
 
   it('should infer nullable properties', () => {
@@ -54,7 +54,7 @@ describe('InferEntity', () => {
       nullable: string | undefined | null;
     }
 
-    expectType<IFoo>({} as InferEntity<typeof Foo>);
+    assert<IsExact<IFoo, InferEntity<typeof Foo>>>(true);
   });
 
   it('should infer manyToOne relations', () => {
@@ -75,7 +75,7 @@ describe('InferEntity', () => {
       nullableRef: Reference<IBar> | undefined | null;
     }
 
-    expectType<IFoo>({} as InferEntity<typeof Foo>);
+    assert<IsExact<IFoo, InferEntity<typeof Foo>>>(true);
   });
 
   it('should infer oneToOne relations', () => {
@@ -96,7 +96,7 @@ describe('InferEntity', () => {
       nullableRef: Reference<IBar> | undefined | null;
     }
 
-    expectType<IFoo>({} as InferEntity<typeof Foo>);
+    assert<IsExact<IFoo, InferEntity<typeof Foo>>>(true);
   });
 
   it('should infer oneToMany relations', () => {
@@ -113,7 +113,7 @@ describe('InferEntity', () => {
       nullableDirectly: Collection<IBar> | undefined | null;
     }
 
-    expectType<IFoo>({} as InferEntity<typeof Foo>);
+    assert<IsExact<IFoo, InferEntity<typeof Foo>>>(true);
   });
 
   it('should infer manyToMany relations', () => {
@@ -130,7 +130,7 @@ describe('InferEntity', () => {
       nullableDirectly: Collection<IBar> | undefined | null;
     }
 
-    expectType<IFoo>({} as InferEntity<typeof Foo>);
+    assert<IsExact<IFoo, InferEntity<typeof Foo>>>(true);
   });
 
   it('should infer embedded properties', () => {
@@ -151,6 +151,6 @@ describe('InferEntity', () => {
       nullableRef: Reference<IBar> | undefined | null;
     }
 
-    expectType<IFoo>({} as InferEntity<typeof Foo>);
+    assert<IsExact<IFoo, InferEntity<typeof Foo>>>(true);
   });
 });
