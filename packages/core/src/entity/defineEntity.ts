@@ -20,7 +20,8 @@ export interface PropertyFactory<Value> {
   (options?: Omit<PropertyOptions<unknown, Value>, 'type'> & { nullable: true; ref: true }): PropertyOptions<unknown, Ref<Value> | null | undefined>;
 }
 
-type InferType<T extends TypeType> = T extends string ? any :
+type InferType<T extends TypeType> =
+  T extends string ? any : // TODO: infer type by string
   T extends NumberConstructor ? number :
   T extends StringConstructor ? string :
   T extends BooleanConstructor ? boolean :
@@ -71,8 +72,10 @@ export interface ManyToManyFactory {
 }
 
 export interface EmbeddedFactory {
-  <Target extends object>(entity: () => EntityName<Target>, options?: EmbeddedOptions & PropertyOptions<unknown> & { nullable?: false }): ({ kind: ReferenceKind.EMBEDDED } & EmbeddedTypeDef<Target> & EmbeddedOptions & PropertyOptions<unknown, Reference<Target>>);
-  <Target extends object>(entity: () => EntityName<Target>, options?: EmbeddedOptions & PropertyOptions<unknown> & { nullable: true }): ({ kind: ReferenceKind.EMBEDDED } & EmbeddedTypeDef<Target> & EmbeddedOptions & PropertyOptions<unknown, Reference<Target> | null | undefined>);
+  <Target extends object>(entity: () => EntityName<Target>, options?: EmbeddedOptions & PropertyOptions<unknown> & { nullable?: false; ref?: false }): ({ kind: ReferenceKind.EMBEDDED } & EmbeddedTypeDef<Target> & EmbeddedOptions & PropertyOptions<unknown, Target>);
+  <Target extends object>(entity: () => EntityName<Target>, options?: EmbeddedOptions & PropertyOptions<unknown> & { nullable: true; ref?: false }): ({ kind: ReferenceKind.EMBEDDED } & EmbeddedTypeDef<Target> & EmbeddedOptions & PropertyOptions<unknown, Target | null | undefined>);
+  <Target extends object>(entity: () => EntityName<Target>, options?: EmbeddedOptions & PropertyOptions<unknown> & { nullable?: false; ref: true }): ({ kind: ReferenceKind.EMBEDDED } & EmbeddedTypeDef<Target> & EmbeddedOptions & PropertyOptions<unknown, Reference<Target>>);
+  <Target extends object>(entity: () => EntityName<Target>, options?: EmbeddedOptions & PropertyOptions<unknown> & { nullable: true; ref: true }): ({ kind: ReferenceKind.EMBEDDED } & EmbeddedTypeDef<Target> & EmbeddedOptions & PropertyOptions<unknown, Reference<Target> | null | undefined>);
 }
 
 export interface EnumFactory {
