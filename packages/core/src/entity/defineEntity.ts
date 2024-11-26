@@ -117,7 +117,7 @@ const enumFactory: EnumFactory = (items: (number | string)[] | (() => Dictionary
   return { ...options, enum: true as const, items };
 };
 
-const propertyFactories = {
+export const propertyFactories = {
   date: propertyFactory(types.date),
   time: propertyFactory(types.time),
   datetime: propertyFactory(types.datetime),

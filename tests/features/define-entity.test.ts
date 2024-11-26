@@ -1,4 +1,4 @@
-import { EntitySchema, InferEntity, Reference, Collection } from '@mikro-orm/core';
+import { EntitySchema, InferEntity, Reference, Collection, InferEntityFromProperties } from '@mikro-orm/core';
 import { IsExact, assert } from 'conditional-type-checks';
 
 describe('InferEntity', () => {
@@ -40,7 +40,7 @@ describe('InferEntity', () => {
 
   it('should infer properties from combination', () => {
     const WithTimes = EntitySchema.define({
-      name:'base',
+      name:'WithTimes',
       properties: t => ({
         createdAt: t.datetime(),
         updatedAt: t.datetime(),
@@ -178,5 +178,24 @@ describe('InferEntity', () => {
     }
 
     assert<IsExact<IFoo, InferEntity<typeof Foo>>>(true);
+  });
+
+  it('should infer properties for circular reference entity', () => {
+    const FooProperties = EntitySchema.defineProperties(t => ({
+      bar: t.manyToOne(() => Bar, { ref: true }),
+      text: t.text(),
+    }));
+
+    interface IFoo extends InferEntityFromProperties<typeof FooProperties> {
+      parent: Reference<IFoo>;
+    }
+
+    const Foo: EntitySchema<IFoo> = EntitySchema.define({
+      name:'foo',
+      properties: t => ({
+        ...FooProperties,
+        parent: t.manyToOne(() => Foo, { ref: true }),
+      }),
+    });
   });
 });
