@@ -16,6 +16,7 @@ import {
   EmbeddedOptions,
   EnumOptions,
   IndexOptions,
+  InferEntityFromProperties,
   ManyToManyOptions,
   ManyToOneOptions,
   OneToManyOptions,
@@ -31,7 +32,9 @@ import { Cascade, ReferenceKind } from '../enums';
 import { Type } from '../types';
 import { Utils } from '../utils';
 import { EnumArrayType } from '../types/EnumArrayType';
-import { defineEntity, defineEntityProperties, type EmbeddedTypeDef, type TypeDef, type TypeType } from '../entity';
+import { type propertyFactories, type EmbeddedTypeDef, type TypeDef, type TypeType, defineEntity, defineEntityProperties } from '../entity';
+import type { EntityManager } from '../EntityManager';
+import type { EventArgs } from '../events';
 
 export type EntitySchemaProperty<Target, Owner> =
   | ({ kind: ReferenceKind.MANY_TO_ONE | 'm:1' } & TypeDef<Target> & ManyToOneOptions<Owner, Target>)
@@ -56,9 +59,20 @@ export class EntitySchema<Entity = any, Base = never> {
    */
   static REGISTRY = new Map<AnyEntity, EntitySchema>();
 
-  static define = defineEntity;
+  static define<Properties extends Record<string, PropertyOptions<unknown, unknown>>>(
+    meta: Omit<Partial<EntityMetadata<InferEntityFromProperties<Properties>>>, 'properties' | 'extends'> & {
+      name: string;
+      properties: ((factories: typeof propertyFactories) => Properties) | Properties;
+    },
+  ): EntitySchema<InferEntityFromProperties<Properties>, never>  {
+    return defineEntity(meta);
+  }
 
-  static defineProperties = defineEntityProperties;
+  static defineProperties<Properties extends Record<string, PropertyOptions<unknown, unknown>>>(
+    properties: (factories: typeof propertyFactories) => Properties,
+  ): Properties {
+    return defineEntityProperties(properties);
+  }
 
   private readonly _meta = new EntityMetadata<Entity>();
   private internal = false;
@@ -323,9 +337,15 @@ export class EntitySchema<Entity = any, Base = never> {
   }
 
   private initProperties(): void {
+    const propertiesNeedInit = new Map<string, (em: EntityManager) => any>();
+
     Utils.entries(this._meta.properties).forEach(([name, options]) => {
       if (Type.isMappedType(options.type)) {
         options.type ??= (options.type as Dictionary).constructor.name;
+      }
+
+      if (options.onInit) {
+        propertiesNeedInit.set(name, options.onInit);
       }
 
       switch (options.kind) {
@@ -356,6 +376,14 @@ export class EntitySchema<Entity = any, Base = never> {
           } else {
             this.addProperty(name, options.type, options);
           }
+      }
+    });
+
+    if (propertiesNeedInit.size === 0) { return; }
+    this._meta.hooks.onInit ??= [];
+    this._meta.hooks.onInit.unshift(({ entity, em }: EventArgs<Entity>) => {
+      for (const [name, init] of propertiesNeedInit) {
+        (entity as any)[name] ??= init(em);
       }
     });
   }

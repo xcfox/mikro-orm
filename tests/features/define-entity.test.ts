@@ -1,4 +1,5 @@
 import { EntitySchema, InferEntity, Reference, Collection, InferEntityFromProperties } from '@mikro-orm/core';
+import { MikroORM } from '@mikro-orm/sqlite';
 import { IsExact, assert } from 'conditional-type-checks';
 
 describe('InferEntity', () => {
@@ -197,5 +198,39 @@ describe('InferEntity', () => {
         parent: t.manyToOne(() => Foo, { ref: true }),
       }),
     });
+  });
+});
+
+describe('define-entity', () => {
+  const Foo = EntitySchema.define({
+    name:'Foo',
+    properties: t => ({
+      id: t.integer({ primary: true }),
+      createdAt: t.datetime({ onCreate: () => new Date() }),
+      initAt: t.datetime({ onInit: () => new Date() }),
+      byDefault: t.text({ default: 'foo' }),
+    }),
+  });
+  let orm: MikroORM;
+
+  beforeAll(async () => {
+    orm = await MikroORM.init({
+      entities: [Foo],
+      dbName: ':memory:',
+    });
+    await orm.schema.createSchema();
+  });
+  beforeEach(async () => orm.schema.clearDatabase());
+  afterAll(() => orm.close(true));
+
+  it('should create entity with default values', async () => {
+    const foo = orm.em.create(Foo, {} as any);
+    expect(foo.initAt).toBeInstanceOf(Date);
+    expect(foo.createdAt).toBeUndefined();
+    expect(foo.byDefault).toBeUndefined();
+    await orm.em.flush();
+    expect(foo.initAt).toBeInstanceOf(Date);
+    expect(foo.createdAt).toBeInstanceOf(Date);
+    expect(foo.byDefault).toEqual('foo');
   });
 });

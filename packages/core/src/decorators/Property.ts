@@ -105,6 +105,12 @@ export interface PropertyOptions<Owner, Value = any> {
    * Add the property to the `returning` statement.
    */
   returning?: boolean;
+
+  /**
+   * Automatically set the property value when new instance of entity is created,
+   * either manually em.create(), or automatically when new entities are loaded from database
+   */
+  onInit?: (em: EntityManager) => Value;
   /**
    * Automatically set the property value when entity gets created, executed during flush operation.
    * @param entity

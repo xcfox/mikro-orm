@@ -156,7 +156,7 @@ export function defineEntity<Properties extends Record<string, PropertyOptions<u
   meta: Omit<Partial<EntityMetadata<InferEntityFromProperties<Properties>>>, 'properties' | 'extends'> & {
     name: string;
     properties: ((factories: typeof propertyFactories) => Properties) | Properties;
-  }): EntitySchema<InferEntityFromProperties<Properties>, never>  {
+  }): EntitySchema<InferEntityFromProperties<Properties>, never> {
   const { properties: getProperties, ...options } = meta;
   const properties = typeof getProperties === 'function' ? getProperties(propertyFactories) : getProperties;
   return new EntitySchema({ properties, ...options } as any);
