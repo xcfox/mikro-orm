@@ -16,7 +16,6 @@ import {
   EmbeddedOptions,
   EnumOptions,
   IndexOptions,
-  InferEntityFromProperties,
   ManyToManyOptions,
   ManyToOneOptions,
   OneToManyOptions,
@@ -32,7 +31,7 @@ import { Cascade, ReferenceKind } from '../enums';
 import { Type } from '../types';
 import { Utils } from '../utils';
 import { EnumArrayType } from '../types/EnumArrayType';
-import { type propertyFactories, type EmbeddedTypeDef, type TypeDef, type TypeType, defineEntity, defineEntityProperties } from '../entity';
+import { type EmbeddedTypeDef, type TypeDef, type TypeType, defineEntity, defineEntityProperties } from '../entity';
 import type { EntityManager } from '../EntityManager';
 import type { EventArgs } from '../events';
 
@@ -59,20 +58,9 @@ export class EntitySchema<Entity = any, Base = never> {
    */
   static REGISTRY = new Map<AnyEntity, EntitySchema>();
 
-  static define<Properties extends Record<string, PropertyOptions<unknown, unknown>>>(
-    meta: Omit<Partial<EntityMetadata<InferEntityFromProperties<Properties>>>, 'properties' | 'extends'> & {
-      name: string;
-      properties: ((factories: typeof propertyFactories) => Properties) | Properties;
-    },
-  ): EntitySchema<InferEntityFromProperties<Properties>, never>  {
-    return defineEntity(meta);
-  }
+  static define: typeof defineEntity = (...args) => defineEntity(...args);
 
-  static defineProperties<Properties extends Record<string, PropertyOptions<unknown, unknown>>>(
-    properties: (factories: typeof propertyFactories) => Properties,
-  ): Properties {
-    return defineEntityProperties(properties);
-  }
+  static defineProperties: typeof defineEntityProperties = (...args) => defineEntityProperties(...args);
 
   private readonly _meta = new EntityMetadata<Entity>();
   private internal = false;
