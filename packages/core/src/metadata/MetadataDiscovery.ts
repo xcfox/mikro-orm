@@ -423,8 +423,8 @@ export class MetadataDiscovery {
       });
 
     copy.props
-      .filter(prop => prop.default)
       .forEach(prop => {
+        if (prop.default == null || typeof prop.default === 'function') { return; }
         const raw = RawQueryFragment.getKnownFragment(prop.default as string);
 
         if (raw) {
@@ -1229,7 +1229,7 @@ export class MetadataDiscovery {
 
     /* istanbul ignore next */
     if (prop.default != null) {
-      return '' + this.platform.quoteVersionValue(prop.default as number, prop);
+      return '' + this.platform.quoteVersionValue(prop.default as number | (() => number), prop);
     }
 
     if (prop.type.toLowerCase() === 'date') {
@@ -1272,7 +1272,7 @@ export class MetadataDiscovery {
   }
 
   private initDefaultValue(prop: EntityProperty): void {
-    if (prop.defaultRaw || !('default' in prop)) {
+    if (prop.defaultRaw || !('default' in prop) || typeof prop.default === 'function') {
       return;
     }
 

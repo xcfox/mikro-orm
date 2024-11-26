@@ -32,8 +32,6 @@ import { Type } from '../types';
 import { Utils } from '../utils';
 import { EnumArrayType } from '../types/EnumArrayType';
 import { type EmbeddedTypeDef, type TypeDef, type TypeType, defineEntity, defineEntityProperties } from '../entity';
-import type { EntityManager } from '../EntityManager';
-import type { EventArgs } from '../events';
 
 export type EntitySchemaProperty<Target, Owner> =
   | ({ kind: ReferenceKind.MANY_TO_ONE | 'm:1' } & TypeDef<Target> & ManyToOneOptions<Owner, Target>)
@@ -325,15 +323,9 @@ export class EntitySchema<Entity = any, Base = never> {
   }
 
   private initProperties(): void {
-    const propertiesNeedInit = new Map<string, (em: EntityManager) => any>();
-
     Utils.entries(this._meta.properties).forEach(([name, options]) => {
       if (Type.isMappedType(options.type)) {
         options.type ??= (options.type as Dictionary).constructor.name;
-      }
-
-      if (options.onInit) {
-        propertiesNeedInit.set(name, options.onInit);
       }
 
       switch (options.kind) {
@@ -341,13 +333,13 @@ export class EntitySchema<Entity = any, Base = never> {
           this.addOneToOne<any>(name, options.type, options);
           break;
         case ReferenceKind.ONE_TO_MANY:
-          this.addOneToMany<any>(name, options.type, options);
+          this.addOneToMany<any>(name, options.type, options as OneToManyOptions<Entity, any>);
           break;
         case ReferenceKind.MANY_TO_ONE:
           this.addManyToOne<any>(name, options.type, options);
           break;
         case ReferenceKind.MANY_TO_MANY:
-          this.addManyToMany<any>(name, options.type, options);
+          this.addManyToMany<any>(name, options.type, options as ManyToManyOptions<Entity, any>);
           break;
         case ReferenceKind.EMBEDDED:
           this.addEmbedded(name, options as EmbeddedOptions);
@@ -364,14 +356,6 @@ export class EntitySchema<Entity = any, Base = never> {
           } else {
             this.addProperty(name, options.type, options);
           }
-      }
-    });
-
-    if (propertiesNeedInit.size === 0) { return; }
-    this._meta.hooks.onInit ??= [];
-    this._meta.hooks.onInit.unshift(({ entity, em }: EventArgs<Entity>) => {
-      for (const [name, init] of propertiesNeedInit) {
-        (entity as any)[name] ??= init(em);
       }
     });
   }

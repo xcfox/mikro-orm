@@ -107,11 +107,6 @@ export interface PropertyOptions<Owner, Value = any> {
   returning?: boolean;
 
   /**
-   * Automatically set the property value when new instance of entity is created,
-   * either manually em.create(), or automatically when new entities are loaded from database
-   */
-  onInit?: (em: EntityManager) => Value;
-  /**
    * Automatically set the property value when entity gets created, executed during flush operation.
    * @param entity
    */
@@ -125,7 +120,7 @@ export interface PropertyOptions<Owner, Value = any> {
    * Specify default column value for {@link https://mikro-orm.io/docs/schema-generator Schema Generator}.
    * This is a runtime value, assignable to the entity property. (SQL only)
    */
-  default?: string | string[] | number | number[] | boolean | null;
+  default?: string | Value | (() => Value) | null;
   /**
    * Specify SQL functions for {@link https://mikro-orm.io/docs/schema-generator Schema Generator}. (SQL only)
    * Since v4 you should use defaultRaw for SQL functions. e.g. now()

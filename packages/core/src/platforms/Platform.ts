@@ -181,7 +181,8 @@ export abstract class Platform {
     return operator === '$not';
   }
 
-  quoteVersionValue(value: Date | number, prop: EntityProperty): Date | string | number {
+  quoteVersionValue(value: Date | number | (() => (number | Date)), prop: EntityProperty): Date | string | number {
+    if (typeof value === 'function') { return value(); }
     return value;
   }
 

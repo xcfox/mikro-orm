@@ -461,7 +461,7 @@ export interface EntityProperty<Owner = any, Target = any> {
   ref?: boolean;
   fieldNames: string[];
   fieldNameRaw?: string;
-  default?: string | number | boolean | null;
+  default?: (() => any) | string | number | boolean | null;
   defaultRaw?: string;
   formula?: (alias: string) => string;
   prefix?: string | boolean;
@@ -493,7 +493,6 @@ export interface EntityProperty<Owner = any, Target = any> {
   getterName?: keyof Owner;
   cascade: Cascade[];
   orphanRemoval?: boolean;
-  onInit?: (em: EntityManager) => any;
   onCreate?: (entity: Owner, em: EntityManager) => any;
   onUpdate?: (entity: Owner, em: EntityManager) => any;
   deleteRule?: 'cascade' | 'no action' | 'set null' | 'set default' | AnyString;
