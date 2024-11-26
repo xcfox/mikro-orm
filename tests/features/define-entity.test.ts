@@ -38,6 +38,32 @@ describe('InferEntity', () => {
     assert<IsExact<IFoo, InferEntity<typeof Foo>>>(true);
   });
 
+  it('should infer properties from combination', () => {
+    const WithTimes = EntitySchema.define({
+      name:'base',
+      properties: t => ({
+        createdAt: t.datetime(),
+        updatedAt: t.datetime(),
+      }),
+    });
+
+    const Foo = EntitySchema.define({
+      name:'foo',
+      properties: t => ({
+        ...WithTimes.properties,
+        bar: t.string(),
+      }),
+    });
+
+    interface IFoo {
+      createdAt: Date;
+      updatedAt: Date;
+      bar: string;
+    }
+
+    assert<IsExact<IFoo, InferEntity<typeof Foo>>>(true);
+  });
+
   it('should infer nullable properties', () => {
     const Foo = EntitySchema.define({
       name:'foo',

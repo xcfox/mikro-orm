@@ -283,6 +283,10 @@ export class EntitySchema<Entity = any, Base = never> {
     return this._meta.className;
   }
 
+  get properties(): InferPropertiesFromEntity<Entity> {
+    return this._meta.properties as unknown as InferPropertiesFromEntity<Entity>;
+  }
+
   /**
    * @internal
    */
@@ -412,3 +416,7 @@ export class EntitySchema<Entity = any, Base = never> {
 }
 
 export type InferEntity<T extends EntitySchema> = NonNullable<T[typeof __types]>['entity'];
+
+export type InferPropertiesFromEntity<T> = {
+  [K in keyof T]: PropertyOptions<unknown, T[K]>
+};
