@@ -11,6 +11,7 @@ import type {
   AnyEntity,
   EntityKey,
   __types,
+  UnRef,
 } from '../typings';
 import type { Type, types } from '../types';
 import type { EntityManager } from '../EntityManager';
@@ -110,12 +111,12 @@ export interface PropertyOptions<Owner, Value = any> {
    * Automatically set the property value when entity gets created, executed during flush operation.
    * @param entity
    */
-  onCreate?: (entity: Owner, em: EntityManager) => Value;
+  onCreate?: (entity: Owner, em: EntityManager) => UnRef<Value>;
   /**
    * Automatically update the property value every time entity gets updated, executed during flush operation.
    * @param entity
    */
-  onUpdate?: (entity: Owner, em: EntityManager) => Value;
+  onUpdate?: (entity: Owner, em: EntityManager) => UnRef<Value>;
   /**
    * Specify default column value for {@link https://mikro-orm.io/docs/schema-generator Schema Generator}.
    * This is a runtime value, assignable to the entity property. (SQL only)
