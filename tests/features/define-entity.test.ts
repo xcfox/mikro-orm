@@ -1,4 +1,4 @@
-import { EntitySchema, InferEntity, Reference, Collection, InferEntityFromProperties, RequiredEntityData, Opt, Ref } from '@mikro-orm/core';
+import { EntitySchema, InferEntity, Reference, Collection, InferEntityFromProperties, RequiredEntityData, Opt, Ref, m } from '@mikro-orm/core';
 import { MikroORM } from '@mikro-orm/sqlite';
 import { IsExact, assert } from 'conditional-type-checks';
 
@@ -6,7 +6,7 @@ describe('InferEntity', () => {
   const Bar = EntitySchema.define({
     name:'bar',
     properties: t => ({
-      foo: t.string(),
+      foo: m.string(),
     }),
   });
 
@@ -15,15 +15,15 @@ describe('InferEntity', () => {
   it('should infer properties', () => {
     const Foo = EntitySchema.define({
       name:'foo',
-      properties: t => ({
-        string: t.string(),
-        number: t.float(),
-        date: t.datetime(),
-        array: t.array(),
-        enum: t.enum(['a', 'b'] as const),
-        json: t.json<{ bar: string }>(),
-        uuid: t.uuid(),
-      }),
+      properties: {
+        string: m.string(),
+        number: m.float(),
+        date: m.datetime(),
+        array: m.array(),
+        enum: m.enum(['a', 'b'] as const),
+        json: m.json<{ bar: string }>(),
+        uuid: m.uuid(),
+      },
     });
 
     interface IFooExpected {
@@ -43,18 +43,18 @@ describe('InferEntity', () => {
   it('should infer properties from combination', () => {
     const WithTimes = EntitySchema.define({
       name:'WithTimes',
-      properties: t => ({
-        createdAt: t.datetime(),
-        updatedAt: t.datetime(),
-      }),
+      properties: {
+        createdAt: m.datetime(),
+        updatedAt: m.datetime(),
+      },
     });
 
     const Foo = EntitySchema.define({
       name:'foo',
-      properties: t => ({
+      properties: {
         ...WithTimes.properties,
-        bar: t.string(),
-      }),
+        bar: m.string(),
+      },
     });
 
     interface IFooExpected {
@@ -70,15 +70,15 @@ describe('InferEntity', () => {
   it('should infer nullable properties', () => {
     const Foo = EntitySchema.define({
       name:'foo',
-      properties: t => ({
-        directly: t.text(),
-        required: t.text({ nullable: false }),
-        nullable: t.text({ nullable: true }),
-        json: t.json<{ bar: string }>(),
-        jsonRequired: t.json<{ bar: string }>({ nullable: false }),
-        jsonOptional: t.json<{ bar: string }>({ onCreate: () => ({ bar:'' }) }),
-        jsonNullable: t.json<{ bar: string }>({ nullable: true }),
-      }),
+      properties: {
+        directly: m.text(),
+        required: m.text({ nullable: false }),
+        nullable: m.text({ nullable: true }),
+        json: m.json<{ bar: string }>(),
+        jsonRequired: m.json<{ bar: string }>({ nullable: false }),
+        jsonOptional: m.json<{ bar: string }>({ onCreate: () => ({ bar:'' }) }),
+        jsonNullable: m.json<{ bar: string }>({ nullable: true }),
+      },
     });
 
     interface IFooExpected {
@@ -98,12 +98,12 @@ describe('InferEntity', () => {
   it('should infer manyToOne relations', () => {
     const Foo = EntitySchema.define({
       name:'foo',
-      properties: t => ({
-        directly: t.manyToOne(() => Bar),
-        ref: t.manyToOne(() => Bar, { ref: true }),
-        nullableDirectly: t.manyToOne(() => Bar, { nullable: true }),
-        nullableRef: t.manyToOne(() => Bar, { ref: true, nullable: true }),
-      }),
+      properties: {
+        directly: m.manyToOne(() => Bar),
+        ref: m.manyToOne(() => Bar, { ref: true }),
+        nullableDirectly: m.manyToOne(() => Bar, { nullable: true }),
+        nullableRef: m.manyToOne(() => Bar, { ref: true, nullable: true }),
+      },
     });
 
     interface IFooExpected {
@@ -120,12 +120,12 @@ describe('InferEntity', () => {
   it('should infer oneToOne relations', () => {
     const Foo = EntitySchema.define({
       name:'foo',
-      properties: t => ({
-        directly: t.oneToOne(() => Bar),
-        ref: t.oneToOne(() => Bar, { ref: true }),
-        nullableDirectly: t.oneToOne(() => Bar, { nullable: true }),
-        nullableRef: t.oneToOne(() => Bar, { ref: true, nullable: true }),
-      }),
+      properties: {
+        directly: m.oneToOne(() => Bar),
+        ref: m.oneToOne(() => Bar, { ref: true }),
+        nullableDirectly: m.oneToOne(() => Bar, { nullable: true }),
+        nullableRef: m.oneToOne(() => Bar, { ref: true, nullable: true }),
+      },
     });
 
     interface IFooExpected {
@@ -142,10 +142,10 @@ describe('InferEntity', () => {
   it('should infer oneToMany relations', () => {
     const Foo = EntitySchema.define({
       name:'foo',
-      properties: t => ({
-        directly: t.oneToMany(() => Bar, { mappedBy: 'foo' }),
-        nullableDirectly: t.oneToMany(() => Bar, { mappedBy: 'foo', nullable: true }),
-      }),
+      properties: {
+        directly: m.oneToMany(() => Bar, { mappedBy: 'foo' }),
+        nullableDirectly: m.oneToMany(() => Bar, { mappedBy: 'foo', nullable: true }),
+      },
     });
 
     interface IFooExpected {
@@ -160,10 +160,10 @@ describe('InferEntity', () => {
   it('should infer manyToMany relations', () => {
     const Foo = EntitySchema.define({
       name:'foo',
-      properties: t => ({
-        directly: t.manyToMany(() => Bar, { mappedBy: 'foo' }),
-        nullableDirectly: t.manyToMany(() => Bar, { mappedBy: 'foo', nullable: true }),
-      }),
+      properties: {
+        directly: m.manyToMany(() => Bar, { mappedBy: 'foo' }),
+        nullableDirectly: m.manyToMany(() => Bar, { mappedBy: 'foo', nullable: true }),
+      },
     });
 
     interface IFooExpected {
@@ -178,12 +178,12 @@ describe('InferEntity', () => {
   it('should infer embedded properties', () => {
     const Foo = EntitySchema.define({
       name:'foo',
-      properties: t => ({
-        directly: t.embedded(() => Bar),
-        ref: t.embedded(() => Bar, { ref: true }),
-        nullableDirectly: t.embedded(() => Bar, { nullable: true }),
-        nullableRef: t.embedded(() => Bar, { ref: true, nullable: true }),
-      }),
+      properties: {
+        directly: m.embedded(() => Bar),
+        ref: m.embedded(() => Bar, { ref: true }),
+        nullableDirectly: m.embedded(() => Bar, { nullable: true }),
+        nullableRef: m.embedded(() => Bar, { ref: true, nullable: true }),
+      },
     });
 
     interface IFooExpected {
@@ -207,18 +207,18 @@ describe('InferEntity', () => {
 
     const Foo = EntitySchema.define({
       name:'foo',
-      properties: t => ({
-        items: t.enum(ab),
-        arrayItems: t.enum(ab, { array: true }),
-        refItems: t.enum(ab, { ref: true }),
-        nullableItems: t.enum(ab, { nullable: true }),
-        nullableRefItems: t.enum(ab, { ref: true, nullable: true }),
-        enum: t.enum(() => Baz),
-        enumArray: t.enum(() => Baz, { array: true }),
-        enumRef: t.enum(() => Baz, { ref: true }),
-        nullableEnum: t.enum(() => Baz, { nullable: true }),
-        nullableEnumRef: t.enum(() => Baz, { ref: true, nullable: true }),
-      }),
+      properties: {
+        items: m.enum(ab),
+        arrayItems: m.enum(ab, { array: true }),
+        refItems: m.enum(ab, { ref: true }),
+        nullableItems: m.enum(ab, { nullable: true }),
+        nullableRefItems: m.enum(ab, { ref: true, nullable: true }),
+        enum: m.enum(() => Baz),
+        enumArray: m.enum(() => Baz, { array: true }),
+        enumRef: m.enum(() => Baz, { ref: true }),
+        nullableEnum: m.enum(() => Baz, { nullable: true }),
+        nullableEnumRef: m.enum(() => Baz, { ref: true, nullable: true }),
+      },
     });
 
     interface IFooExpected {
@@ -240,10 +240,10 @@ describe('InferEntity', () => {
   });
 
   it('should infer properties for circular reference entity', () => {
-    const FooProperties = EntitySchema.defineProperties(t => ({
-      bar: t.manyToOne(() => Bar, { ref: true }),
-      text: t.text(),
-    }));
+    const FooProperties = m.defineProperties({
+      bar: m.manyToOne(() => Bar, { ref: true }),
+      text: m.text(),
+    });
 
     interface IFoo extends InferEntityFromProperties<typeof FooProperties> {
       parent: Reference<IFoo>;
@@ -251,10 +251,10 @@ describe('InferEntity', () => {
 
     const Foo: EntitySchema<IFoo> = EntitySchema.define({
       name:'foo',
-      properties: t => ({
+      properties: {
         ...FooProperties,
-        parent: t.manyToOne(() => Foo, { ref: true }),
-      }),
+        parent: m.manyToOne(() => Foo, { ref: true }),
+      },
     });
 
     interface IFooExpected {
@@ -270,10 +270,10 @@ describe('InferEntity', () => {
     const Foo = EntitySchema.define({
       name:'Foo',
       properties: t => ({
-        id: t.integer({ primary: true }),
-        normal: t.string(),
-        withNullable: t.string({ nullable: true }),
-        withDefault: t.string({ default: 'foo' }),
+        id: m.integer({ primary: true }),
+        normal: m.string(),
+        withNullable: m.string({ nullable: true }),
+        withDefault: m.string({ default: 'foo' }),
       }),
     });
 
@@ -294,11 +294,11 @@ describe('InferEntity', () => {
 describe('define-entity', () => {
   const Foo = EntitySchema.define({
     name:'Foo',
-    properties: t => ({
-      id: t.integer({ primary: true }),
-      createdAt: t.datetime({ onCreate: () => new Date() }),
-      byDefault: t.text({ default: 'foo' }),
-    }),
+    properties: {
+      id: m.integer({ primary: true }),
+      createdAt: m.datetime({ onCreate: () => new Date() }),
+      byDefault: m.text({ default: 'foo' }),
+    },
   });
   let orm: MikroORM;
 

@@ -164,7 +164,7 @@ export const propertyFactories = {
   embedded: embeddedFactory,
 
   enum: enumFactory,
-};
+} as const;
 
 export function defineEntity<Properties extends Record<string, PropertyOptions<unknown, unknown>>>(
   meta: Omit<Partial<EntityMetadata<InferEntityFromProperties<Properties>>>, 'properties' | 'extends'> & {
@@ -176,6 +176,15 @@ export function defineEntity<Properties extends Record<string, PropertyOptions<u
   return new EntitySchema({ properties, ...options } as any);
 }
 
-export function defineEntityProperties<Properties extends Record<string, PropertyOptions<unknown, unknown>>>(properties: (factories: typeof propertyFactories) => Properties): Properties {
-  return properties(propertyFactories);
+export function defineEntityProperties<Properties extends Record<string, PropertyOptions<unknown, unknown>>>(properties: ((factories: typeof propertyFactories) => Properties) | Properties): Properties {
+  return typeof properties === 'function' ? properties(propertyFactories) : properties;
 }
+
+/**
+ * Define schema for entities.
+ */
+export const m = {
+  ...propertyFactories,
+  defineEntity,
+  defineProperties: defineEntityProperties,
+} as const;
