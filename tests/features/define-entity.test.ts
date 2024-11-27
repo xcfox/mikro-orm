@@ -302,11 +302,42 @@ describe('InferEntity', () => {
 });
 
 describe('define-entity', () => {
+  const WithId = m.defineProperties({
+    id: m.integer({ primary: true }),
+  });
+  const WithCreatedAt = EntitySchema.define({
+    name:'WithCreatedAt',
+    properties: {
+      createdAt: m.datetime({ onCreate: () => new Date() }),
+    },
+    abstract: true,
+  });
+  const WithUpdatedAt = {
+    updatedAt: m.datetime({
+      onCreate: () => new Date(),
+      onUpdate: () => new Date(),
+    }),
+  };
+  const WithDeletedAt = {
+    deletedAt: m.datetime({ nullable: true }),
+  };
+
+  const Composed = EntitySchema.define({
+    name:'Composed',
+    properties: {
+      ...WithId,
+      ...WithCreatedAt.properties,
+      ...WithUpdatedAt,
+      ...WithDeletedAt,
+    },
+    indexes:[{ properties: ['createdAt'] }],
+  });
+
   const Foo = EntitySchema.define({
     name:'Foo',
     properties: {
+      ...WithCreatedAt.properties,
       id: m.integer({ primary: true }),
-      createdAt: m.datetime({ onCreate: () => new Date() }),
       byDefault: m.text({ default: 'foo' }),
     },
   });
@@ -314,7 +345,7 @@ describe('define-entity', () => {
 
   beforeAll(async () => {
     orm = await MikroORM.init({
-      entities: [Foo],
+      entities: [WithCreatedAt, Foo, Composed],
       dbName: ':memory:',
     });
     await orm.schema.createSchema();
@@ -329,6 +360,15 @@ describe('define-entity', () => {
     await orm.em.flush();
     expect(foo.createdAt).toBeInstanceOf(Date);
     expect(foo.byDefault).toEqual('foo');
+  });
+
+  it('should be able to compose properties', async () => {
+    const composed = orm.em.create(Composed, {});
+    await orm.em.flush();
+    expect(composed.id).toBeDefined();
+    expect(composed.createdAt).toBeInstanceOf(Date);
+    expect(composed.updatedAt).toBeInstanceOf(Date);
+    expect(composed.deletedAt).toBeUndefined();
   });
 });
 
