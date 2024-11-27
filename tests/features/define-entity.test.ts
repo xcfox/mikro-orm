@@ -312,7 +312,7 @@ describe('define-entity', () => {
 
   it('should create entity with default values', async () => {
     const foo = orm.em.create(Foo, {});
-    expect(foo.createdAt).toBeUndefined();
+    expect(foo.createdAt).toBeInstanceOf(Date);
     expect(foo.byDefault).toBeUndefined();
     await orm.em.flush();
     expect(foo.createdAt).toBeInstanceOf(Date);

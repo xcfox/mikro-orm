@@ -277,7 +277,7 @@ export class EntityFactory {
       const Entity = meta.class as Constructor<T>;
 
       // creates new instance via constructor as this is the new entity
-      const entity = this.assignDefaultValues(new Entity(...params), meta);
+      const entity = new Entity(...params);
 
       // creating managed entity instance when `forceEntityConstructor` is enabled,
       // we need to wipe all the values as they would cause update queries on next flush
@@ -285,6 +285,10 @@ export class EntityFactory {
         meta.props
           .filter(prop => prop.persist !== false && !prop.primary && data[prop.name] === undefined)
           .forEach(prop => delete entity[prop.name]);
+      }
+
+      if (options.newEntity) {
+        this.assignDefaultValues(entity, meta);
       }
 
       if (meta.virtual) {
@@ -301,7 +305,7 @@ export class EntityFactory {
     }
 
     // creates new entity instance, bypassing constructor call as its already persisted entity
-    const entity = this.assignDefaultValues(Object.create(meta.class.prototype) as T, meta);
+    const entity = Object.create(meta.class.prototype) as T;
     helper(entity).__managed = true;
     helper(entity).__processing = !meta.embeddable && !meta.virtual;
     helper(entity).__schema = this.driver.getSchemaName(meta, options);
@@ -320,8 +324,8 @@ export class EntityFactory {
 
   private assignDefaultValues<T extends object>(entity: T, meta: EntityMetadata<T>): T {
     Utils.entries(meta.properties).forEach(([name, options]) => {
-        if ('default' in options && typeof options.default === 'function') {
-          (entity as any)[name] ??= options.default();
+        if ('onCreate' in options && typeof options.onCreate === 'function') {
+          (entity as any)[name] ??= options.onCreate(entity, this.em);
         }
     });
     return entity;
