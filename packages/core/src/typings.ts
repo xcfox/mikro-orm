@@ -461,7 +461,7 @@ export interface EntityProperty<Owner = any, Target = any> {
   ref?: boolean;
   fieldNames: string[];
   fieldNameRaw?: string;
-  default?: (() => any) | string | number | boolean | null;
+  default?: string | number | boolean | null;
   defaultRaw?: string;
   formula?: (alias: string) => string;
   prefix?: string | boolean;

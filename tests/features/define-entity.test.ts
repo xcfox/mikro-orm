@@ -295,7 +295,7 @@ describe('define-entity', () => {
     properties: t => ({
       id: t.integer({ primary: true }),
       createdAt: t.datetime({ onCreate: () => new Date() }),
-      byDefault: t.text({ default: () => 'foo' }),
+      byDefault: t.text({ default: 'foo' }),
     }),
   });
   let orm: MikroORM;
@@ -313,7 +313,7 @@ describe('define-entity', () => {
   it('should create entity with default values', async () => {
     const foo = orm.em.create(Foo, {});
     expect(foo.createdAt).toBeUndefined();
-    expect(foo.byDefault).toEqual('foo');
+    expect(foo.byDefault).toBeUndefined();
     await orm.em.flush();
     expect(foo.createdAt).toBeInstanceOf(Date);
     expect(foo.byDefault).toEqual('foo');
