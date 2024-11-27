@@ -1,4 +1,4 @@
-import { EntitySchema, InferEntity, Reference, Collection, InferEntityFromProperties } from '@mikro-orm/core';
+import { EntitySchema, InferEntity, Reference, Collection, InferEntityFromProperties, RequiredEntityData, Opt, Ref } from '@mikro-orm/core';
 import { MikroORM } from '@mikro-orm/sqlite';
 import { IsExact, assert } from 'conditional-type-checks';
 
@@ -26,7 +26,7 @@ describe('InferEntity', () => {
       }),
     });
 
-    interface IFoo {
+    interface IFooExpected {
       string: string;
       number: number;
       date: Date;
@@ -36,7 +36,8 @@ describe('InferEntity', () => {
       uuid: string;
     }
 
-    assert<IsExact<IFoo, InferEntity<typeof Foo>>>(true);
+    type IFoo = InferEntity<typeof Foo>;
+    assert<IsExact<IFoo, IFooExpected>>(true);
   });
 
   it('should infer properties from combination', () => {
@@ -56,32 +57,40 @@ describe('InferEntity', () => {
       }),
     });
 
-    interface IFoo {
+    interface IFooExpected {
       createdAt: Date;
       updatedAt: Date;
       bar: string;
     }
 
-    assert<IsExact<IFoo, InferEntity<typeof Foo>>>(true);
+    type IFoo = InferEntity<typeof Foo>;
+    assert<IsExact<IFoo, IFooExpected>>(true);
   });
 
   it('should infer nullable properties', () => {
     const Foo = EntitySchema.define({
       name:'foo',
       properties: t => ({
-        default: t.text(),
+        directly: t.text(),
         required: t.text({ nullable: false }),
         nullable: t.text({ nullable: true }),
+        json: t.json<{ bar: string }>(),
+        jsonRequired: t.json<{ bar: string }>({ nullable: false, onCreate:() => ({ bar: '' }) }),
+        jsonNullable: t.json<{ bar: string }>({ nullable: true }),
       }),
     });
 
-    interface IFoo {
-      default: string;
+    interface IFooExpected {
+      directly: string;
       required: string;
       nullable: string | undefined | null;
+      json: { bar: string };
+      jsonRequired: { bar: string };
+      jsonNullable: { bar: string } | undefined | null;
     }
 
-    assert<IsExact<IFoo, InferEntity<typeof Foo>>>(true);
+    type IFoo = InferEntity<typeof Foo>;
+    assert<IsExact<IFoo, IFooExpected>>(true);
   });
 
   it('should infer manyToOne relations', () => {
@@ -95,14 +104,15 @@ describe('InferEntity', () => {
       }),
     });
 
-    interface IFoo {
+    interface IFooExpected {
       directly: IBar;
       ref: Reference<IBar>;
       nullableDirectly: IBar | undefined | null;
       nullableRef: Reference<IBar> | undefined | null;
     }
 
-    assert<IsExact<IFoo, InferEntity<typeof Foo>>>(true);
+    type IFoo = InferEntity<typeof Foo>;
+    assert<IsExact<IFoo, IFooExpected>>(true);
   });
 
   it('should infer oneToOne relations', () => {
@@ -116,14 +126,15 @@ describe('InferEntity', () => {
       }),
     });
 
-    interface IFoo {
+    interface IFooExpected {
       directly: IBar;
       ref: Reference<IBar>;
       nullableDirectly: IBar | undefined | null;
       nullableRef: Reference<IBar> | undefined | null;
     }
 
-    assert<IsExact<IFoo, InferEntity<typeof Foo>>>(true);
+    type IFoo = InferEntity<typeof Foo>;
+    assert<IsExact<IFoo, IFooExpected>>(true);
   });
 
   it('should infer oneToMany relations', () => {
@@ -135,12 +146,13 @@ describe('InferEntity', () => {
       }),
     });
 
-    interface IFoo {
+    interface IFooExpected {
       directly: Collection<IBar>;
       nullableDirectly: Collection<IBar> | undefined | null;
     }
 
-    assert<IsExact<IFoo, InferEntity<typeof Foo>>>(true);
+    type IFoo = InferEntity<typeof Foo>;
+    assert<IsExact<IFoo, IFooExpected>>(true);
   });
 
   it('should infer manyToMany relations', () => {
@@ -152,12 +164,13 @@ describe('InferEntity', () => {
       }),
     });
 
-    interface IFoo {
+    interface IFooExpected {
       directly: Collection<IBar>;
       nullableDirectly: Collection<IBar> | undefined | null;
     }
 
-    assert<IsExact<IFoo, InferEntity<typeof Foo>>>(true);
+    type IFoo = InferEntity<typeof Foo>;
+    assert<IsExact<IFoo, IFooExpected>>(true);
   });
 
   it('should infer embedded properties', () => {
@@ -171,14 +184,57 @@ describe('InferEntity', () => {
       }),
     });
 
-    interface IFoo {
+    interface IFooExpected {
       directly: IBar;
       ref: Reference<IBar>;
       nullableDirectly: IBar | undefined | null;
       nullableRef: Reference<IBar> | undefined | null;
     }
 
-    assert<IsExact<IFoo, InferEntity<typeof Foo>>>(true);
+    type IFoo = InferEntity<typeof Foo>;
+    assert<IsExact<IFoo, IFooExpected>>(true);
+  });
+
+  it('should infer enum properties', () => {
+    enum Baz {
+      A,
+      B,
+    }
+
+    const ab: ('a' | 'b')[] = ['a', 'b'];
+
+    const Foo = EntitySchema.define({
+      name:'foo',
+      properties: t => ({
+        items: t.enum(ab),
+        arrayItems: t.enum(ab, { array: true }),
+        refItems: t.enum(ab, { ref: true }),
+        nullableItems: t.enum(ab, { nullable: true }),
+        nullableRefItems: t.enum(ab, { ref: true, nullable: true }),
+        enum: t.enum(() => Baz),
+        enumArray: t.enum(() => Baz, { array: true }),
+        enumRef: t.enum(() => Baz, { ref: true }),
+        nullableEnum: t.enum(() => Baz, { nullable: true }),
+        nullableEnumRef: t.enum(() => Baz, { ref: true, nullable: true }),
+      }),
+    });
+
+    interface IFooExpected {
+      items: 'a' | 'b';
+      arrayItems: ('a' | 'b')[];
+      refItems: Ref<'a'> | Ref<'b'>;
+      nullableItems: 'a' | 'b' | undefined | null;
+      nullableRefItems: Ref<'a'> | Ref<'b'> | undefined | null;
+
+      enum: Baz | string;
+      enumArray: (Baz | string)[];
+      enumRef: Ref<Baz> | Ref<string>;
+      nullableEnum: Baz | string | undefined | null;
+      nullableEnumRef: Ref<Baz> | Ref<string> | undefined | null;
+    }
+
+    type IFoo = InferEntity<typeof Foo>;
+    assert<IsExact<IFoo, IFooExpected>>(true);
   });
 
   it('should infer properties for circular reference entity', () => {
@@ -198,7 +254,39 @@ describe('InferEntity', () => {
         parent: t.manyToOne(() => Foo, { ref: true }),
       }),
     });
+
+    interface IFooExpected {
+      bar: Reference<IBar>;
+      text: string;
+      parent: Reference<IFoo>;
+    }
+
+    assert<IsExact<IFooExpected, InferEntity<typeof Foo>>>(true);
   });
+
+  it('should infer Required properties', () => {
+    const Foo = EntitySchema.define({
+      name:'Foo',
+      properties: t => ({
+        id: t.integer({ primary: true }),
+        normal: t.string(),
+        withNullable: t.string({ nullable: true }),
+        withDefault: t.string({ default: 'foo' }),
+      }),
+    });
+
+    type IFoo = InferEntity<typeof Foo>;
+
+    type RequiredFoo = RequiredEntityData<IFoo>;
+
+    interface IBar {
+      text: Opt<string>;
+    }
+
+    type RequiredBar = RequiredEntityData<IBar>;
+
+  });
+
 });
 
 describe('define-entity', () => {
@@ -223,7 +311,7 @@ describe('define-entity', () => {
   afterAll(() => orm.close(true));
 
   it('should create entity with default values', async () => {
-    const foo = orm.em.create(Foo, {} as any);
+    const foo = orm.em.create(Foo, {});
     expect(foo.createdAt).toBeUndefined();
     expect(foo.byDefault).toEqual('foo');
     await orm.em.flush();

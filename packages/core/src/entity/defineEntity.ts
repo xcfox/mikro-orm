@@ -3,22 +3,14 @@ import { ReferenceKind } from '../enums';
 import { EntitySchema } from '../metadata/EntitySchema';
 import { types, type Type } from '../types';
 import { type InferJSType } from '../types/Type';
-import type { Constructor, Dictionary, EntityMetadata, EntityName, Ref } from '../typings';
+import type { Constructor, Dictionary, EntityMetadata, EntityName, Opt, Ref } from '../typings';
 import type { Collection } from './Collection';
-import type { Reference } from './Reference';
 
 export type TypeType = string | NumberConstructor | StringConstructor | BooleanConstructor | DateConstructor | ArrayConstructor | Constructor<Type<any>> | Type<any>;
 
 export type TypeDef<Target> = { type: TypeType } | { entity: string | (() => string | EntityName<Target>) };
 
 export type EmbeddedTypeDef<Target> = { type: TypeType } | { entity: string | (() => string | EntityName<Target> | EntityName<Target>[]) };
-
-export interface PropertyFactory<Value> {
-  (options?: Omit<PropertyOptions<unknown, Value>, 'type'> & { nullable?: false; ref?: false }): PropertyOptions<unknown, Value>;
-  (options?: Omit<PropertyOptions<unknown, Value>, 'type'> & { nullable: true; ref?: false }): PropertyOptions<unknown, Value | null | undefined>;
-  (options?: Omit<PropertyOptions<unknown, Value>, 'type'> & { nullable?: false; ref: true }): PropertyOptions<unknown, Ref<Value>>;
-  (options?: Omit<PropertyOptions<unknown, Value>, 'type'> & { nullable: true; ref: true }): PropertyOptions<unknown, Ref<Value> | null | undefined>;
-}
 
 type InferType<T extends TypeType> =
   T extends string ? any : // TODO: infer type by string
@@ -33,13 +25,30 @@ type InferType<T extends TypeType> =
   never;
 
 
-export interface TypedPropertyFactory {
-  <Value extends TypeType>(type: Value, options?: Omit<PropertyOptions<unknown, InferType<Value>>, 'type'> & { nullable?: false; ref?: false }): PropertyOptions<unknown, InferType<Value>>;
-  <Value extends TypeType>(type: Value, options?: Omit<PropertyOptions<unknown, InferType<Value>>, 'type'> & { nullable: true; ref?: false }): PropertyOptions<unknown, InferType<Value> | null | undefined>;
-  <Value extends TypeType>(type: Value, options?: Omit<PropertyOptions<unknown, InferType<Value>>, 'type'> & { nullable?: false; ref: true }): PropertyOptions<unknown, Ref<InferType<Value>>>;
-  <Value extends TypeType>(type: Value, options?: Omit<PropertyOptions<unknown, InferType<Value>>, 'type'> & { nullable: true; ref: true }): PropertyOptions<unknown, Ref<InferType<Value>> | null | undefined>;
+interface PropertyTypedOptions extends Pick<PropertyOptions<any, any>, 'nullable' | 'ref' | 'onCreate' | 'default'> {
+  array?: boolean;
+}
+type OptOptions = { onCreate: (...args: any) => any } | { default: {} };
+
+type InferVariants<Value, Options extends PropertyTypedOptions> = InferVariantsForNullable<InferVariantsForOpt<InferVariantsForRef<InferVariantsForArray<Value, Options>, Options>, Options>, Options>;
+type InferVariantsForNullable<Value, Options extends PropertyTypedOptions> = Options extends { nullable: true } ? Value | null | undefined : Value;
+type InferVariantsForOpt<Value, Options extends PropertyTypedOptions> = Options extends OptOptions ? Opt<Value> : Value;
+type InferVariantsForRef<Value, Options extends PropertyTypedOptions> = Value extends Collection<any, any> ? Value : Options extends { ref: true } ? Ref<Value> : Value;
+type InferVariantsForArray<Value, Options extends PropertyTypedOptions> = Options extends { array: true } ? Value[] : Value;
+
+export interface PropertyFactory<Value> {
+  <Options extends Omit<PropertyOptions<unknown, Value>, 'type'>>
+    (options?: Options): PropertyOptions<unknown, InferVariants<Value, Options>>;
 }
 
+type Arr<T> = T[];
+
+export interface TypedPropertyFactory {
+  <Value extends TypeType, Options extends Omit<PropertyOptions<unknown, InferType<Value>>, 'type'>>
+    (type: Value, options?: Options): PropertyOptions<unknown, InferVariants<InferType<Value>, Options>>;
+}
+
+// Due to [multiple generics](https://github.com/microsoft/TypeScript/issues/10571), we can only use function overloads for `JsonPropertyFactory`
 export interface JsonPropertyFactory {
   <Payload = any>(options?: Omit<PropertyOptions<unknown, Payload>, 'type'> & { nullable?: false; ref?: false }): PropertyOptions<unknown, Payload>;
   <Payload = any>(options?: Omit<PropertyOptions<unknown, Payload>, 'type'> & { nullable: true; ref?: false }): PropertyOptions<unknown, Payload | null | undefined>;
@@ -48,41 +57,43 @@ export interface JsonPropertyFactory {
 }
 
 export interface ManyToOneFactory {
-  <Target extends object>(entity: () => EntityName<Target>, options?: ManyToOneOptions<unknown, Target> & { nullable?: false; ref?: false }): ({ kind: ReferenceKind.MANY_TO_ONE } & TypeDef<Target> & ManyToOneOptions<unknown, Target, Target>);
-  <Target extends object>(entity: () => EntityName<Target>, options?: ManyToOneOptions<unknown, Target> & { nullable: true; ref?: false }): ({ kind: ReferenceKind.MANY_TO_ONE } & TypeDef<Target> & ManyToOneOptions<unknown, Target, Target | null | undefined>);
-  <Target extends object>(entity: () => EntityName<Target>, options?: ManyToOneOptions<unknown, Target> & { nullable?: false; ref: true }): ({ kind: ReferenceKind.MANY_TO_ONE } & TypeDef<Target> & ManyToOneOptions<unknown, Target, Reference<Target>>);
-  <Target extends object>(entity: () => EntityName<Target>, options?: ManyToOneOptions<unknown, Target> & { nullable: true; ref: true }): ({ kind: ReferenceKind.MANY_TO_ONE } & TypeDef<Target> & ManyToOneOptions<unknown, Target, Reference<Target> | null | undefined>);
+  <Target extends object, Options extends ManyToOneOptions<unknown, Target>>
+    (entity: () => EntityName<Target>, options?: Options): ({ kind: ReferenceKind.MANY_TO_ONE } & TypeDef<Target> &
+      ManyToOneOptions<unknown, Target, InferVariants<Target, Options>>);
 }
 
 export interface OneToOneFactory {
-  <Target extends object>(entity: () => EntityName<Target>, options?: OneToOneOptions<unknown, Target> & { nullable?: false; ref?: false }): ({ kind: ReferenceKind.ONE_TO_ONE } & TypeDef<Target> & OneToOneOptions<unknown, Target, Target>);
-  <Target extends object>(entity: () => EntityName<Target>, options?: OneToOneOptions<unknown, Target> & { nullable: true; ref?: false }): ({ kind: ReferenceKind.ONE_TO_ONE } & TypeDef<Target> & OneToOneOptions<unknown, Target, Target | null | undefined>);
-  <Target extends object>(entity: () => EntityName<Target>, options?: OneToOneOptions<unknown, Target> & { nullable?: false; ref: true }): ({ kind: ReferenceKind.ONE_TO_ONE } & TypeDef<Target> & OneToOneOptions<unknown, Target, Reference<Target>>);
-  <Target extends object>(entity: () => EntityName<Target>, options?: OneToOneOptions<unknown, Target> & { nullable: true; ref: true }): ({ kind: ReferenceKind.ONE_TO_ONE } & TypeDef<Target> & OneToOneOptions<unknown, Target, Reference<Target> | null | undefined>);
+  <Target extends object, Options extends OneToOneOptions<unknown, Target>>
+    (entity: () => EntityName<Target>, options?: Options): ({ kind: ReferenceKind.ONE_TO_ONE } & TypeDef<Target> &
+      OneToOneOptions<unknown, Target, InferVariants<Target, Options>>);
 }
 
 export interface OneToManyFactory {
-  <Target extends object>(entity: () => EntityName<Target>, options: OneToManyOptions<unknown, Target> & { nullable?: false }): ({ kind: ReferenceKind.ONE_TO_MANY } & TypeDef<Target> & OneToManyOptions<unknown, Target>);
-  <Target extends object>(entity: () => EntityName<Target>, options: OneToManyOptions<unknown, Target> & { nullable: true }): ({ kind: ReferenceKind.ONE_TO_MANY } & TypeDef<Target> & OneToManyOptions<unknown, Target, Collection<Target, object> | null | undefined>);
+  <Target extends object, Options extends OneToManyOptions<unknown, Target>>
+    (entity: () => EntityName<Target>, options: Options): ({ kind: ReferenceKind.ONE_TO_MANY } & TypeDef<Target> &
+      OneToManyOptions<unknown, Target, InferVariants<Collection<Target>, Options>>);
 }
 
 export interface ManyToManyFactory {
-  <Target extends object>(entity: () => EntityName<Target>, options?: ManyToManyOptions<unknown, Target> & { nullable?: false }): ({ kind: ReferenceKind.MANY_TO_MANY } & TypeDef<Target> & ManyToManyOptions<unknown, Target>);
-  <Target extends object>(entity: () => EntityName<Target>, options?: ManyToManyOptions<unknown, Target> & { nullable: true }): ({ kind: ReferenceKind.MANY_TO_MANY } & TypeDef<Target> & ManyToManyOptions<unknown, Target, Collection<Target, object> | null | undefined>);
+  <Target extends object, Options extends ManyToManyOptions<unknown, Target>>
+    (entity: () => EntityName<Target>, options?: Options): ({ kind: ReferenceKind.MANY_TO_MANY } & TypeDef<Target> &
+      ManyToManyOptions<unknown, Target, InferVariants<Collection<Target>, Options>>);
 }
 
 export interface EmbeddedFactory {
-  <Target extends object>(entity: () => EntityName<Target>, options?: EmbeddedOptions & PropertyOptions<unknown> & { nullable?: false; ref?: false }): ({ kind: ReferenceKind.EMBEDDED } & EmbeddedTypeDef<Target> & EmbeddedOptions & PropertyOptions<unknown, Target>);
-  <Target extends object>(entity: () => EntityName<Target>, options?: EmbeddedOptions & PropertyOptions<unknown> & { nullable: true; ref?: false }): ({ kind: ReferenceKind.EMBEDDED } & EmbeddedTypeDef<Target> & EmbeddedOptions & PropertyOptions<unknown, Target | null | undefined>);
-  <Target extends object>(entity: () => EntityName<Target>, options?: EmbeddedOptions & PropertyOptions<unknown> & { nullable?: false; ref: true }): ({ kind: ReferenceKind.EMBEDDED } & EmbeddedTypeDef<Target> & EmbeddedOptions & PropertyOptions<unknown, Reference<Target>>);
-  <Target extends object>(entity: () => EntityName<Target>, options?: EmbeddedOptions & PropertyOptions<unknown> & { nullable: true; ref: true }): ({ kind: ReferenceKind.EMBEDDED } & EmbeddedTypeDef<Target> & EmbeddedOptions & PropertyOptions<unknown, Reference<Target> | null | undefined>);
+  <Target extends object, Options extends EmbeddedOptions & PropertyOptions<unknown>>
+    (entity: () => EntityName<Target>, options?: Options): ({ kind: ReferenceKind.EMBEDDED } & EmbeddedTypeDef<Target> & EmbeddedOptions &
+      PropertyOptions<unknown, InferVariants<Target, Options>>);
 }
 
 export interface EnumFactory {
-  <EnumType>(items: () => Dictionary<EnumType>, option?: EnumOptions<unknown, EnumType> & { nullable?: false }) : ({ enum: true } & EnumOptions<unknown, EnumType>);
-  <EnumType>(items: () => Dictionary<EnumType>, option?: EnumOptions<unknown, EnumType> & { nullable: true }) : ({ enum: true } & EnumOptions<unknown, EnumType | null | undefined>);
-  <ItemTypes extends (number | string)[]>(items: ItemTypes, option?: EnumOptions<unknown, ItemTypes[number]> & { nullable?: false }) : ({ enum: true } & EnumOptions<unknown, ItemTypes[number]>);
-  <ItemTypes extends (number | string)[]>(items: ItemTypes, option?: EnumOptions<unknown, ItemTypes[number]> & { nullable: true }) : ({ enum: true } & EnumOptions<unknown, ItemTypes[number] | null | undefined>);
+  <EnumType, Options extends EnumOptions<unknown, EnumType>>
+    (items: () => Dictionary<EnumType>, option?: Options): ({ enum: true } &
+      EnumOptions<unknown, InferVariants<EnumType, Options>>);
+
+  <ItemTypes extends (number | string)[], Options extends EnumOptions<unknown, ItemTypes[number]>>
+    (items: ItemTypes, option?: Options) : ({ enum: true } &
+      EnumOptions<unknown, InferVariants<ItemTypes[number], Options>>);
 }
 
 function propertyFactory<ValueType extends Type<unknown, unknown>>(type: Constructor<ValueType>): PropertyFactory<NonNullable<InferJSType<ValueType>>> {
@@ -90,23 +101,23 @@ function propertyFactory<ValueType extends Type<unknown, unknown>>(type: Constru
 }
 
 const typePropertyFactory: TypedPropertyFactory = (type, options) => {
-  return { ...options, type };
+  return { ...options, type } as ReturnType<TypedPropertyFactory>;
 };
 
 const manyToOneFactory: ManyToOneFactory = (entity, options) => {
-  return { ...options, kind: ReferenceKind.MANY_TO_ONE, entity };
+  return { ...options, kind: ReferenceKind.MANY_TO_ONE, entity } as ReturnType<ManyToOneFactory>;
 };
 
 const oneToOneFactory: OneToOneFactory = (entity, options) => {
-  return { ...options, kind: ReferenceKind.ONE_TO_ONE, entity };
+  return { ...options, kind: ReferenceKind.ONE_TO_ONE, entity } as ReturnType<OneToOneFactory>;
 };
 
 const oneToManyFactory: OneToManyFactory = (entity, options) => {
-  return { ...options, kind: ReferenceKind.ONE_TO_MANY, entity };
+  return { ...options, kind: ReferenceKind.ONE_TO_MANY, entity } as ReturnType<OneToManyFactory>;
 };
 
 const manyToManyFactory: ManyToManyFactory = (entity, options) => {
-  return { ...options, kind: ReferenceKind.MANY_TO_MANY, entity };
+  return { ...options, kind: ReferenceKind.MANY_TO_MANY, entity } as ReturnType<ManyToManyFactory>;
 };
 
 const embeddedFactory: EmbeddedFactory = (entity: () => any, options) => {
