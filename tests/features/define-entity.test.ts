@@ -75,7 +75,8 @@ describe('InferEntity', () => {
         required: t.text({ nullable: false }),
         nullable: t.text({ nullable: true }),
         json: t.json<{ bar: string }>(),
-        jsonRequired: t.json<{ bar: string }>({ nullable: false, onCreate:() => ({ bar: '' }) }),
+        jsonRequired: t.json<{ bar: string }>({ nullable: false }),
+        jsonOptional: t.json<{ bar: string }>({ onCreate: () => ({ bar:'' }) }),
         jsonNullable: t.json<{ bar: string }>({ nullable: true }),
       }),
     });
@@ -86,6 +87,7 @@ describe('InferEntity', () => {
       nullable: string | undefined | null;
       json: { bar: string };
       jsonRequired: { bar: string };
+      jsonOptional: Opt<{ bar: string }>;
       jsonNullable: { bar: string } | undefined | null;
     }
 

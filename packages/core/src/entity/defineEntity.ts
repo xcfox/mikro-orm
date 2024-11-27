@@ -41,8 +41,6 @@ export interface PropertyFactory<Value> {
     (options?: Options): PropertyOptions<unknown, InferVariants<Value, Options>>;
 }
 
-type Arr<T> = T[];
-
 export interface TypedPropertyFactory {
   <Value extends TypeType, Options extends Omit<PropertyOptions<unknown, InferType<Value>>, 'type'>>
     (type: Value, options?: Options): PropertyOptions<unknown, InferVariants<InferType<Value>, Options>>;
@@ -50,10 +48,15 @@ export interface TypedPropertyFactory {
 
 // Due to [multiple generics](https://github.com/microsoft/TypeScript/issues/10571), we can only use function overloads for `JsonPropertyFactory`
 export interface JsonPropertyFactory {
-  <Payload = any>(options?: Omit<PropertyOptions<unknown, Payload>, 'type'> & { nullable?: false; ref?: false }): PropertyOptions<unknown, Payload>;
-  <Payload = any>(options?: Omit<PropertyOptions<unknown, Payload>, 'type'> & { nullable: true; ref?: false }): PropertyOptions<unknown, Payload | null | undefined>;
-  <Payload = any>(options?: Omit<PropertyOptions<unknown, Payload>, 'type'> & { nullable?: false; ref: true }): PropertyOptions<unknown, Ref<Payload>>;
-  <Payload = any>(options?: Omit<PropertyOptions<unknown, Payload>, 'type'> & { nullable: true; ref: true }): PropertyOptions<unknown, Ref<Payload> | null | undefined>;
+  <Payload = any>(options?: Omit<PropertyOptions<unknown, Payload>, 'type'> & { nullable?: false; ref?: false; onCreate?: undefined; default?: undefined }): PropertyOptions<unknown, Payload>;
+  <Payload = any>(options?: Omit<PropertyOptions<unknown, Payload>, 'type'> & { nullable: true; ref?: false; onCreate?: undefined; default?: undefined }): PropertyOptions<unknown, Payload | null | undefined>;
+  <Payload = any>(options?: Omit<PropertyOptions<unknown, Payload>, 'type'> & { nullable?: false; ref: true; onCreate?: undefined; default?: undefined }): PropertyOptions<unknown, Ref<Payload>>;
+  <Payload = any>(options?: Omit<PropertyOptions<unknown, Payload>, 'type'> & { nullable: true; ref: true; onCreate?: undefined; default?: undefined }): PropertyOptions<unknown, Ref<Payload> | null | undefined>;
+
+  <Payload = any>(options?: Omit<PropertyOptions<unknown, Payload>, 'type'> & { nullable?: false; ref?: false } & OptOptions): PropertyOptions<unknown, Opt<Payload>>;
+  <Payload = any>(options?: Omit<PropertyOptions<unknown, Payload>, 'type'> & { nullable: true; ref?: false } & OptOptions): PropertyOptions<unknown, Opt<Payload> | null | undefined>;
+  <Payload = any>(options?: Omit<PropertyOptions<unknown, Payload>, 'type'> & { nullable?: false; ref: true } & OptOptions): PropertyOptions<unknown, Opt<Ref<Payload>>>;
+  <Payload = any>(options?: Omit<PropertyOptions<unknown, Payload>, 'type'> & { nullable: true; ref: true } & OptOptions): PropertyOptions<unknown, Opt<Ref<Payload>> | null | undefined>;
 }
 
 export interface ManyToOneFactory {
