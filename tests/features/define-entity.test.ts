@@ -1,4 +1,4 @@
-import { EntitySchema, InferEntity, Reference, Collection, InferEntityFromProperties, RequiredEntityData, Opt, Ref, m } from '@mikro-orm/core';
+import { EntitySchema, InferEntity, Reference, Collection, InferEntityFromProperties, RequiredEntityData, Opt, Ref, m, TextType } from '@mikro-orm/core';
 import { MikroORM } from '@mikro-orm/sqlite';
 import { IsExact, assert } from 'conditional-type-checks';
 
@@ -22,6 +22,9 @@ describe('InferEntity', () => {
         array: m.array(),
         enum: m.enum(['a', 'b'] as const),
         json: m.json<{ bar: string }>(),
+        text: m.property(TextType),
+        text1: m.property('text'),
+        float: m.property('float', { onCreate:() => 0 }),
         uuid: m.uuid(),
       },
     });
@@ -33,6 +36,9 @@ describe('InferEntity', () => {
       array: string[];
       enum: 'a' | 'b';
       json: { bar: string };
+      text: string;
+      text1: string;
+      float: Opt<number>;
       uuid: string;
     }
 

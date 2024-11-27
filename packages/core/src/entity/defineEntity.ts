@@ -13,7 +13,7 @@ export type TypeDef<Target> = { type: TypeType } | { entity: string | (() => str
 export type EmbeddedTypeDef<Target> = { type: TypeType } | { entity: string | (() => string | EntityName<Target> | EntityName<Target>[]) };
 
 type InferType<T extends TypeType> =
-  T extends string ? any : // TODO: infer type by string
+  T extends string ? InferTypeByString<T> :
   T extends NumberConstructor ? number :
   T extends StringConstructor ? string :
   T extends BooleanConstructor ? boolean :
@@ -24,6 +24,13 @@ type InferType<T extends TypeType> =
   T extends Type<any, any> ? NonNullable<InferJSType<T>> :
   never;
 
+type InferTypeByString<T extends string> =
+  T extends 'string[]' ? string[] :
+  T extends 'datetime' ? Date :
+  T extends 'boolean' ? boolean :
+  T extends 'number' | 'float' | 'int' ? number :
+  T extends 'string' | 'varchar' | 'character' | 'char' | 'text' ? string :
+  never;
 
 interface PropertyTypedOptions extends Pick<PropertyOptions<any, any>, 'nullable' | 'ref' | 'onCreate' | 'default'> {
   array?: boolean;
