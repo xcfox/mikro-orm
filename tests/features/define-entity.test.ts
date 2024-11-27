@@ -280,6 +280,7 @@ describe('InferEntity', () => {
         normal: m.string(),
         withNullable: m.string({ nullable: true }),
         withDefault: m.string({ default: 'foo' }),
+        withOnCreate: m.string({ onCreate: () => 'foo' }),
       }),
     });
 
@@ -287,12 +288,15 @@ describe('InferEntity', () => {
 
     type RequiredFoo = RequiredEntityData<IFoo>;
 
-    interface IBar {
-      text: Opt<string>;
+    interface RequiredFooExpected {
+      normal: string;
+      id?: number | undefined | null;
+      withNullable?: string | undefined | null;
+      withDefault?: Opt<string> | undefined | null;
+      withOnCreate?: Opt<string> | undefined | null;
     }
 
-    type RequiredBar = RequiredEntityData<IBar>;
-
+    assert<IsExact<RequiredFoo, RequiredFooExpected>>(true);
   });
 
 });
