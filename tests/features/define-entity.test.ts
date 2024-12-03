@@ -7,38 +7,41 @@ import {
   RequiredEntityData,
   Opt,
   Ref,
-  m,
   TextType,
   types,
   ReferenceKind,
+  defineEntity,
+  defineEntityProperties,
 } from '@mikro-orm/core';
 import { MikroORM } from '@mikro-orm/sqlite';
 import { IsExact, assert } from 'conditional-type-checks';
 
+const p = defineEntity.properties;
+
 describe('define-entity', () => {
-  const Bar = EntitySchema.define({
+  const Bar = defineEntity({
     name: 'bar',
-    properties: t => ({
-      foo: m.string(),
-    }),
+    properties: {
+      foo: p.string(),
+    },
   });
 
   interface IBar extends InferEntity<typeof Bar> {}
 
   it('should define entity with properties', () => {
-    const Foo = EntitySchema.define({
+    const Foo = defineEntity({
       name: 'foo',
       properties: {
-        string: m.string(),
-        number: m.float(),
-        date: m.datetime(),
-        array: m.array(),
-        enum: m.enum(['a', 'b'] as const),
-        json: m.json<{ bar: string }>(),
-        text: m.property(TextType),
-        text1: m.property('text'),
-        float: m.property('float', { onCreate: () => 0 }),
-        uuid: m.uuid(),
+        string: p.string(),
+        number: p.float(),
+        date: p.datetime(),
+        array: p.array(),
+        enum: p.enum(['a', 'b'] as const),
+        json: p.json<{ bar: string }>(),
+        text: p.property(TextType),
+        text1: p.property('text'),
+        float: p.property('float', { onCreate: () => 0 }),
+        uuid: p.uuid(),
       },
     });
 
@@ -78,19 +81,19 @@ describe('define-entity', () => {
   });
 
   it('should define entity with properties from combination', () => {
-    const WithTimes = EntitySchema.define({
+    const WithTimes = defineEntity({
       name: 'WithTimes',
       properties: {
-        createdAt: m.datetime(),
-        updatedAt: m.datetime(),
+        createdAt: p.datetime(),
+        updatedAt: p.datetime(),
       },
     });
 
-    const Foo = EntitySchema.define({
+    const Foo = defineEntity({
       name: 'foo',
       properties: {
         ...WithTimes.properties,
-        bar: m.string(),
+        bar: p.string(),
       },
     });
 
@@ -116,18 +119,18 @@ describe('define-entity', () => {
   });
 
   it('should define entity with nullable properties', () => {
-    const Foo = EntitySchema.define({
+    const Foo = defineEntity({
       name: 'foo',
       properties: {
-        directly: m.text(),
-        required: m.text({ nullable: false }),
-        nullable: m.text({ nullable: true }),
-        json: m.json<{ bar: string }>(),
-        jsonRequired: m.json<{ bar: string }>({ nullable: false }),
-        jsonOptional: m.json<{ bar: string }>({
+        directly: p.text(),
+        required: p.text({ nullable: false }),
+        nullable: p.text({ nullable: true }),
+        json: p.json<{ bar: string }>(),
+        jsonRequired: p.json<{ bar: string }>({ nullable: false }),
+        jsonOptional: p.json<{ bar: string }>({
           onCreate: () => ({ bar: '' }),
         }),
-        jsonNullable: m.json<{ bar: string }>({ nullable: true }),
+        jsonNullable: p.json<{ bar: string }>({ nullable: true }),
       },
     });
 
@@ -161,13 +164,13 @@ describe('define-entity', () => {
   });
 
   it('should define entity with manyToOne relations', () => {
-    const Foo = EntitySchema.define({
+    const Foo = defineEntity({
       name: 'foo',
       properties: {
-        directly: m.manyToOne(() => Bar),
-        ref: m.manyToOne(() => Bar, { ref: true }),
-        nullableDirectly: m.manyToOne(() => Bar, { nullable: true }),
-        nullableRef: m.manyToOne(() => Bar, { ref: true, nullable: true }),
+        directly: p.manyToOne(() => Bar),
+        ref: p.manyToOne(() => Bar, { ref: true }),
+        nullableDirectly: p.manyToOne(() => Bar, { nullable: true }),
+        nullableRef: p.manyToOne(() => Bar, { ref: true, nullable: true }),
       },
     });
 
@@ -211,13 +214,13 @@ describe('define-entity', () => {
   });
 
   it('should define entity with oneToOne relations', () => {
-    const Foo = EntitySchema.define({
+    const Foo = defineEntity({
       name: 'foo',
       properties: {
-        directly: m.oneToOne(() => Bar),
-        ref: m.oneToOne(() => Bar, { ref: true }),
-        nullableDirectly: m.oneToOne(() => Bar, { nullable: true }),
-        nullableRef: m.oneToOne(() => Bar, { ref: true, nullable: true }),
+        directly: p.oneToOne(() => Bar),
+        ref: p.oneToOne(() => Bar, { ref: true }),
+        nullableDirectly: p.oneToOne(() => Bar, { nullable: true }),
+        nullableRef: p.oneToOne(() => Bar, { ref: true, nullable: true }),
       },
     });
 
@@ -261,11 +264,11 @@ describe('define-entity', () => {
   });
 
   it('should define entity with oneToMany relations', () => {
-    const Foo = EntitySchema.define({
+    const Foo = defineEntity({
       name: 'foo',
       properties: {
-        directly: m.oneToMany(() => Bar, { mappedBy: 'foo' }),
-        nullableDirectly: m.oneToMany(() => Bar, {
+        directly: p.oneToMany(() => Bar, { mappedBy: 'foo' }),
+        nullableDirectly: p.oneToMany(() => Bar, {
           mappedBy: 'foo',
           nullable: true,
         }),
@@ -301,11 +304,11 @@ describe('define-entity', () => {
   });
 
   it('should define entity with manyToMany relations', () => {
-    const Foo = EntitySchema.define({
+    const Foo = defineEntity({
       name: 'foo',
       properties: {
-        directly: m.manyToMany(() => Bar, { mappedBy: 'foo' }),
-        nullableDirectly: m.manyToMany(() => Bar, {
+        directly: p.manyToMany(() => Bar, { mappedBy: 'foo' }),
+        nullableDirectly: p.manyToMany(() => Bar, {
           mappedBy: 'foo',
           nullable: true,
         }),
@@ -341,13 +344,13 @@ describe('define-entity', () => {
   });
 
   it('should define entity with embedded properties', () => {
-    const Foo = EntitySchema.define({
+    const Foo = defineEntity({
       name: 'foo',
       properties: {
-        directly: m.embedded(() => Bar),
-        ref: m.embedded(() => Bar, { ref: true }),
-        nullableDirectly: m.embedded(() => Bar, { nullable: true }),
-        nullableRef: m.embedded(() => Bar, { ref: true, nullable: true }),
+        directly: p.embedded(() => Bar),
+        ref: p.embedded(() => Bar, { ref: true }),
+        nullableDirectly: p.embedded(() => Bar, { nullable: true }),
+        nullableRef: p.embedded(() => Bar, { ref: true, nullable: true }),
       },
     });
 
@@ -398,19 +401,19 @@ describe('define-entity', () => {
 
     const ab: ('a' | 'b')[] = ['a', 'b'];
 
-    const Foo = EntitySchema.define({
+    const Foo = defineEntity({
       name: 'foo',
       properties: {
-        items: m.enum(ab),
-        arrayItems: m.enum(ab, { array: true }),
-        refItems: m.enum(ab, { ref: true }),
-        nullableItems: m.enum(ab, { nullable: true }),
-        nullableRefItems: m.enum(ab, { ref: true, nullable: true }),
-        enum: m.enum(() => Baz),
-        enumArray: m.enum(() => Baz, { array: true }),
-        enumRef: m.enum(() => Baz, { ref: true }),
-        nullableEnum: m.enum(() => Baz, { nullable: true }),
-        nullableEnumRef: m.enum(() => Baz, { ref: true, nullable: true }),
+        items: p.enum(ab),
+        arrayItems: p.enum(ab, { array: true }),
+        refItems: p.enum(ab, { ref: true }),
+        nullableItems: p.enum(ab, { nullable: true }),
+        nullableRefItems: p.enum(ab, { ref: true, nullable: true }),
+        enum: p.enum(() => Baz),
+        enumArray: p.enum(() => Baz, { array: true }),
+        enumRef: p.enum(() => Baz, { ref: true }),
+        nullableEnum: p.enum(() => Baz, { nullable: true }),
+        nullableEnumRef: p.enum(() => Baz, { ref: true, nullable: true }),
       },
     });
 
@@ -461,20 +464,20 @@ describe('define-entity', () => {
   });
 
   it('should infer properties for circular reference entity', () => {
-    const FooProperties = m.defineProperties({
-      bar: m.manyToOne(() => Bar, { ref: true }),
-      text: m.text(),
+    const FooProperties = defineEntityProperties({
+      bar: p.manyToOne(() => Bar, { ref: true }),
+      text: p.text(),
     });
 
     interface IFoo extends InferEntityFromProperties<typeof FooProperties> {
       parent: Reference<IFoo>;
     }
 
-    const Foo: EntitySchema<IFoo> = EntitySchema.define({
+    const Foo: EntitySchema<IFoo> = defineEntity({
       name: 'foo',
       properties: {
         ...FooProperties,
-        parent: m.manyToOne(() => Foo, { ref: true }),
+        parent: p.manyToOne(() => Foo, { ref: true }),
       },
     });
 
@@ -488,14 +491,14 @@ describe('define-entity', () => {
   });
 
   it('should infer Required properties', () => {
-    const Foo = EntitySchema.define({
+    const Foo = defineEntity({
       name: 'Foo',
       properties: t => ({
-        id: m.integer({ primary: true }),
-        normal: m.string(),
-        withNullable: m.string({ nullable: true }),
-        withDefault: m.string({ default: 'foo' }),
-        withOnCreate: m.string({ onCreate: () => 'foo' }),
+        id: p.integer({ primary: true }),
+        normal: p.string(),
+        withNullable: p.string({ nullable: true }),
+        withDefault: p.string({ default: 'foo' }),
+        withOnCreate: p.string({ onCreate: () => 'foo' }),
       }),
     });
 
@@ -514,27 +517,27 @@ describe('define-entity', () => {
     assert<IsExact<RequiredFoo, RequiredFooExpected>>(true);
   });
 
-  const WithId = m.defineProperties({
-    id: m.integer({ primary: true }),
+  const WithId = defineEntityProperties({
+    id: p.integer({ primary: true }),
   });
-  const WithCreatedAt = EntitySchema.define({
+  const WithCreatedAt = defineEntity({
     name: 'WithCreatedAt',
     properties: {
-      createdAt: m.datetime({ onCreate: () => new Date() }),
+      createdAt: p.datetime({ onCreate: () => new Date() }),
     },
     abstract: true,
   });
   const WithUpdatedAt = {
-    updatedAt: m.datetime({
+    updatedAt: p.datetime({
       onCreate: () => new Date(),
       onUpdate: () => new Date(),
     }),
   };
   const WithDeletedAt = {
-    deletedAt: m.datetime({ nullable: true }),
+    deletedAt: p.datetime({ nullable: true }),
   };
 
-  const Composed = EntitySchema.define({
+  const Composed = defineEntity({
     name: 'Composed',
     properties: {
       ...WithId,
@@ -545,12 +548,12 @@ describe('define-entity', () => {
     indexes: [{ properties: ['createdAt'] }],
   });
 
-  const Foo = EntitySchema.define({
+  const Foo = defineEntity({
     name: 'Foo',
     properties: {
       ...WithCreatedAt.properties,
-      id: m.integer({ primary: true }),
-      byDefault: m.text({ default: 'foo' }),
+      id: p.integer({ primary: true }),
+      byDefault: p.text({ default: 'foo' }),
     },
   });
   let orm: MikroORM;

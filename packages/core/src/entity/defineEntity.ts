@@ -3,8 +3,14 @@ import { ReferenceKind } from '../enums';
 import { EntitySchema } from '../metadata/EntitySchema';
 import { types, type Type } from '../types';
 import { type InferJSType } from '../types/Type';
-import type { Constructor, Dictionary, EntityMetadata, EntityName, Opt, Ref } from '../typings';
+import type { __types, Constructor, Dictionary, EntityMetadata, EntityName, Opt, Ref } from '../typings';
 import type { Collection } from './Collection';
+
+export type InferEntity<T extends EntitySchema> = NonNullable<T[typeof __types]>['entity'];
+
+export type InferPropertiesFromEntity<T> = {
+  [K in keyof T]: PropertyOptions<unknown, T[K]>
+};
 
 export type TypeType = string | NumberConstructor | StringConstructor | BooleanConstructor | DateConstructor | ArrayConstructor | Constructor<Type<any>> | Type<any>;
 
@@ -183,15 +189,8 @@ export function defineEntity<Properties extends Record<string, PropertyOptions<u
   return new EntitySchema({ properties, ...options } as any);
 }
 
+defineEntity.properties = propertyFactories;
+
 export function defineEntityProperties<Properties extends Record<string, PropertyOptions<unknown, unknown>>>(properties: ((factories: typeof propertyFactories) => Properties) | Properties): Properties {
   return typeof properties === 'function' ? properties(propertyFactories) : properties;
 }
-
-/**
- * Define schema for entities.
- */
-export const m = {
-  ...propertyFactories,
-  defineEntity,
-  defineProperties: defineEntityProperties,
-} as const;

@@ -31,7 +31,7 @@ import { Cascade, ReferenceKind } from '../enums';
 import { Type } from '../types';
 import { Utils } from '../utils';
 import { EnumArrayType } from '../types/EnumArrayType';
-import { type EmbeddedTypeDef, type TypeDef, type TypeType, defineEntity, defineEntityProperties } from '../entity';
+import { type InferPropertiesFromEntity, type EmbeddedTypeDef, type TypeDef, type TypeType } from '../entity';
 
 export type EntitySchemaProperty<Target, Owner> =
   | ({ kind: ReferenceKind.MANY_TO_ONE | 'm:1' } & TypeDef<Target> & ManyToOneOptions<Owner, Target>)
@@ -55,10 +55,6 @@ export class EntitySchema<Entity = any, Base = never> {
    * so we can use the class in `entities` option just like the EntitySchema instance.
    */
   static REGISTRY = new Map<AnyEntity, EntitySchema>();
-
-  static define: typeof defineEntity = (...args) => defineEntity(...args);
-
-  static defineProperties: typeof defineEntityProperties = (...args) => defineEntityProperties(...args);
 
   private readonly _meta = new EntityMetadata<Entity>();
   private internal = false;
@@ -284,7 +280,7 @@ export class EntitySchema<Entity = any, Base = never> {
   }
 
   get properties(): InferPropertiesFromEntity<Entity> {
-    return this._meta.properties as unknown as InferPropertiesFromEntity<Entity>;
+    return this._meta.properties as any;
   }
 
   /**
@@ -414,9 +410,3 @@ export class EntitySchema<Entity = any, Base = never> {
   };
 
 }
-
-export type InferEntity<T extends EntitySchema> = NonNullable<T[typeof __types]>['entity'];
-
-export type InferPropertiesFromEntity<T> = {
-  [K in keyof T]: PropertyOptions<unknown, T[K]>
-};
