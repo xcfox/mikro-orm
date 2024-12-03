@@ -329,16 +329,16 @@ export class EntitySchema<Entity = any, Base = never> {
           this.addOneToOne<any>(name, options.type, options);
           break;
         case ReferenceKind.ONE_TO_MANY:
-          this.addOneToMany<any>(name, options.type, options as OneToManyOptions<Entity, any>);
+          this.addOneToMany<any>(name, options.type, options as any);
           break;
         case ReferenceKind.MANY_TO_ONE:
           this.addManyToOne<any>(name, options.type, options);
           break;
         case ReferenceKind.MANY_TO_MANY:
-          this.addManyToMany<any>(name, options.type, options as ManyToManyOptions<Entity, any>);
+          this.addManyToMany<any>(name, options.type, options as any);
           break;
         case ReferenceKind.EMBEDDED:
-          this.addEmbedded(name, options as EmbeddedOptions);
+          this.addEmbedded(name, options as any);
           break;
         default:
           if (options.enum) {

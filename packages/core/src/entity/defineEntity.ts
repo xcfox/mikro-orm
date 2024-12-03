@@ -113,27 +113,27 @@ export interface EnumFactory {
 }
 
 function propertyFactory<ValueType extends Type<unknown, unknown>>(type: Constructor<ValueType>): PropertyFactory<NonNullable<InferJSType<ValueType>>> {
-  return (options => ({ ...options, type })) as PropertyFactory<NonNullable<InferJSType<ValueType>>>;
+  return (options => ({ ...options, type }) as any);
 }
 
 const typePropertyFactory: TypedPropertyFactory = (type, options) => {
-  return { ...options, type } as ReturnType<TypedPropertyFactory>;
+  return { ...options, type } as any;
 };
 
 const manyToOneFactory: ManyToOneFactory = (entity, options) => {
-  return { ...options, kind: ReferenceKind.MANY_TO_ONE, entity } as ReturnType<ManyToOneFactory>;
+  return { ...options, kind: ReferenceKind.MANY_TO_ONE, entity } as any;
 };
 
 const oneToOneFactory: OneToOneFactory = (entity, options) => {
-  return { ...options, kind: ReferenceKind.ONE_TO_ONE, entity } as ReturnType<OneToOneFactory>;
+  return { ...options, kind: ReferenceKind.ONE_TO_ONE, entity } as any;
 };
 
 const oneToManyFactory: OneToManyFactory = (entity, options) => {
-  return { ...options, kind: ReferenceKind.ONE_TO_MANY, entity } as ReturnType<OneToManyFactory>;
+  return { ...options, kind: ReferenceKind.ONE_TO_MANY, entity } as any;
 };
 
 const manyToManyFactory: ManyToManyFactory = (entity, options) => {
-  return { ...options, kind: ReferenceKind.MANY_TO_MANY, entity } as ReturnType<ManyToManyFactory>;
+  return { ...options, kind: ReferenceKind.MANY_TO_MANY, entity } as any;
 };
 
 const embeddedFactory: EmbeddedFactory = (entity: () => any, options) => {
