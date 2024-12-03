@@ -1,10 +1,23 @@
-import { EntitySchema, InferEntity, Reference, Collection, InferEntityFromProperties, RequiredEntityData, Opt, Ref, m, TextType, types, ReferenceKind } from '@mikro-orm/core';
+import {
+  EntitySchema,
+  InferEntity,
+  Reference,
+  Collection,
+  InferEntityFromProperties,
+  RequiredEntityData,
+  Opt,
+  Ref,
+  m,
+  TextType,
+  types,
+  ReferenceKind,
+} from '@mikro-orm/core';
 import { MikroORM } from '@mikro-orm/sqlite';
 import { IsExact, assert } from 'conditional-type-checks';
 
 describe('define-entity', () => {
   const Bar = EntitySchema.define({
-    name:'bar',
+    name: 'bar',
     properties: t => ({
       foo: m.string(),
     }),
@@ -14,7 +27,7 @@ describe('define-entity', () => {
 
   it('should define entity with properties', () => {
     const Foo = EntitySchema.define({
-      name:'foo',
+      name: 'foo',
       properties: {
         string: m.string(),
         number: m.float(),
@@ -24,7 +37,7 @@ describe('define-entity', () => {
         json: m.json<{ bar: string }>(),
         text: m.property(TextType),
         text1: m.property('text'),
-        float: m.property('float', { onCreate:() => 0 }),
+        float: m.property('float', { onCreate: () => 0 }),
         uuid: m.uuid(),
       },
     });
@@ -48,16 +61,16 @@ describe('define-entity', () => {
     const FooExpected = new EntitySchema({
       name: 'foo',
       properties: {
-        string:{ type: types.string },
-        number:{ type: types.float },
-        date:{ type: types.datetime },
-        array:{ type: types.array },
-        enum:{ enum: true, items:['a', 'b'] },
+        string: { type: types.string },
+        number: { type: types.float },
+        date: { type: types.datetime },
+        array: { type: types.array },
+        enum: { enum: true, items: ['a', 'b'] },
         json: { type: types.json },
-        text:{ type: TextType },
-        text1:{ type: 'text' },
-        float:{ type: 'float', onCreate: expect.any(Function) },
-        uuid:{ type: types.uuid },
+        text: { type: TextType },
+        text1: { type: 'text' },
+        float: { type: 'float', onCreate: expect.any(Function) },
+        uuid: { type: types.uuid },
       },
     });
 
@@ -66,7 +79,7 @@ describe('define-entity', () => {
 
   it('should define entity with properties from combination', () => {
     const WithTimes = EntitySchema.define({
-      name:'WithTimes',
+      name: 'WithTimes',
       properties: {
         createdAt: m.datetime(),
         updatedAt: m.datetime(),
@@ -74,7 +87,7 @@ describe('define-entity', () => {
     });
 
     const Foo = EntitySchema.define({
-      name:'foo',
+      name: 'foo',
       properties: {
         ...WithTimes.properties,
         bar: m.string(),
@@ -93,9 +106,9 @@ describe('define-entity', () => {
     const FooExpected = new EntitySchema<IFooExpected>({
       name: 'foo',
       properties: {
-        createdAt:{ type: types.datetime },
-        updatedAt:{ type: types.datetime },
-        bar:{ type: types.string },
+        createdAt: { type: types.datetime },
+        updatedAt: { type: types.datetime },
+        bar: { type: types.string },
       },
     });
 
@@ -104,14 +117,16 @@ describe('define-entity', () => {
 
   it('should define entity with nullable properties', () => {
     const Foo = EntitySchema.define({
-      name:'foo',
+      name: 'foo',
       properties: {
         directly: m.text(),
         required: m.text({ nullable: false }),
         nullable: m.text({ nullable: true }),
         json: m.json<{ bar: string }>(),
         jsonRequired: m.json<{ bar: string }>({ nullable: false }),
-        jsonOptional: m.json<{ bar: string }>({ onCreate: () => ({ bar:'' }) }),
+        jsonOptional: m.json<{ bar: string }>({
+          onCreate: () => ({ bar: '' }),
+        }),
         jsonNullable: m.json<{ bar: string }>({ nullable: true }),
       },
     });
@@ -132,13 +147,13 @@ describe('define-entity', () => {
     const FooExpected = new EntitySchema<IFooExpected>({
       name: 'foo',
       properties: {
-        directly:{ type: types.text },
-        required:{ type: types.text, nullable: false },
-        nullable:{ type: types.text, nullable: true },
-        json:{ type: types.json },
-        jsonRequired:{ type: types.json, nullable: false },
-        jsonOptional:{ type: types.json, onCreate: expect.any(Function) },
-        jsonNullable:{ type: types.json, nullable: true },
+        directly: { type: types.text },
+        required: { type: types.text, nullable: false },
+        nullable: { type: types.text, nullable: true },
+        json: { type: types.json },
+        jsonRequired: { type: types.json, nullable: false },
+        jsonOptional: { type: types.json, onCreate: expect.any(Function) },
+        jsonNullable: { type: types.json, nullable: true },
       },
     });
 
@@ -147,7 +162,7 @@ describe('define-entity', () => {
 
   it('should define entity with manyToOne relations', () => {
     const Foo = EntitySchema.define({
-      name:'foo',
+      name: 'foo',
       properties: {
         directly: m.manyToOne(() => Bar),
         ref: m.manyToOne(() => Bar, { ref: true }),
@@ -169,10 +184,26 @@ describe('define-entity', () => {
     const FooExpected = new EntitySchema<IFooExpected>({
       name: 'foo',
       properties: {
-        directly:{ kind: ReferenceKind.MANY_TO_ONE, entity: expect.any(Function) },
-        ref:{ kind: ReferenceKind.MANY_TO_ONE, entity: expect.any(Function), ref: true },
-        nullableDirectly:{ kind: ReferenceKind.MANY_TO_ONE, entity: expect.any(Function), nullable: true },
-        nullableRef:{ kind: ReferenceKind.MANY_TO_ONE, entity: expect.any(Function), ref:true, nullable: true },
+        directly: {
+          kind: ReferenceKind.MANY_TO_ONE,
+          entity: expect.any(Function),
+        },
+        ref: {
+          kind: ReferenceKind.MANY_TO_ONE,
+          entity: expect.any(Function),
+          ref: true,
+        },
+        nullableDirectly: {
+          kind: ReferenceKind.MANY_TO_ONE,
+          entity: expect.any(Function),
+          nullable: true,
+        },
+        nullableRef: {
+          kind: ReferenceKind.MANY_TO_ONE,
+          entity: expect.any(Function),
+          ref: true,
+          nullable: true,
+        },
       },
     });
 
@@ -181,7 +212,7 @@ describe('define-entity', () => {
 
   it('should define entity with oneToOne relations', () => {
     const Foo = EntitySchema.define({
-      name:'foo',
+      name: 'foo',
       properties: {
         directly: m.oneToOne(() => Bar),
         ref: m.oneToOne(() => Bar, { ref: true }),
@@ -203,10 +234,26 @@ describe('define-entity', () => {
     const FooExpected = new EntitySchema<IFooExpected>({
       name: 'foo',
       properties: {
-        directly: { kind: ReferenceKind.ONE_TO_ONE, entity: expect.any(Function) },
-        ref: { kind: ReferenceKind.ONE_TO_ONE, entity: expect.any(Function), ref: true },
-        nullableDirectly: { kind: ReferenceKind.ONE_TO_ONE, entity: expect.any(Function), nullable: true },
-        nullableRef: { kind: ReferenceKind.ONE_TO_ONE, entity: expect.any(Function), ref:true, nullable: true },
+        directly: {
+          kind: ReferenceKind.ONE_TO_ONE,
+          entity: expect.any(Function),
+        },
+        ref: {
+          kind: ReferenceKind.ONE_TO_ONE,
+          entity: expect.any(Function),
+          ref: true,
+        },
+        nullableDirectly: {
+          kind: ReferenceKind.ONE_TO_ONE,
+          entity: expect.any(Function),
+          nullable: true,
+        },
+        nullableRef: {
+          kind: ReferenceKind.ONE_TO_ONE,
+          entity: expect.any(Function),
+          ref: true,
+          nullable: true,
+        },
       },
     });
 
@@ -215,10 +262,13 @@ describe('define-entity', () => {
 
   it('should define entity with oneToMany relations', () => {
     const Foo = EntitySchema.define({
-      name:'foo',
+      name: 'foo',
       properties: {
         directly: m.oneToMany(() => Bar, { mappedBy: 'foo' }),
-        nullableDirectly: m.oneToMany(() => Bar, { mappedBy: 'foo', nullable: true }),
+        nullableDirectly: m.oneToMany(() => Bar, {
+          mappedBy: 'foo',
+          nullable: true,
+        }),
       },
     });
 
@@ -233,8 +283,17 @@ describe('define-entity', () => {
     const FooExpected = new EntitySchema<IFooExpected>({
       name: 'foo',
       properties: {
-        directly: { kind: ReferenceKind.ONE_TO_MANY, entity: expect.any(Function), mappedBy : 'foo' },
-        nullableDirectly: { kind: ReferenceKind.ONE_TO_MANY, entity: expect.any(Function), mappedBy : 'foo', nullable: true },
+        directly: {
+          kind: ReferenceKind.ONE_TO_MANY,
+          entity: expect.any(Function),
+          mappedBy: 'foo',
+        },
+        nullableDirectly: {
+          kind: ReferenceKind.ONE_TO_MANY,
+          entity: expect.any(Function),
+          mappedBy: 'foo',
+          nullable: true,
+        },
       },
     });
 
@@ -243,10 +302,13 @@ describe('define-entity', () => {
 
   it('should define entity with manyToMany relations', () => {
     const Foo = EntitySchema.define({
-      name:'foo',
+      name: 'foo',
       properties: {
         directly: m.manyToMany(() => Bar, { mappedBy: 'foo' }),
-        nullableDirectly: m.manyToMany(() => Bar, { mappedBy: 'foo', nullable: true }),
+        nullableDirectly: m.manyToMany(() => Bar, {
+          mappedBy: 'foo',
+          nullable: true,
+        }),
       },
     });
 
@@ -261,8 +323,17 @@ describe('define-entity', () => {
     const FooExpected = new EntitySchema<IFooExpected>({
       name: 'foo',
       properties: {
-        directly: { kind: ReferenceKind.MANY_TO_MANY, entity: expect.any(Function), mappedBy : 'foo' },
-        nullableDirectly: { kind: ReferenceKind.MANY_TO_MANY, entity: expect.any(Function), mappedBy : 'foo', nullable: true },
+        directly: {
+          kind: ReferenceKind.MANY_TO_MANY,
+          entity: expect.any(Function),
+          mappedBy: 'foo',
+        },
+        nullableDirectly: {
+          kind: ReferenceKind.MANY_TO_MANY,
+          entity: expect.any(Function),
+          mappedBy: 'foo',
+          nullable: true,
+        },
       },
     });
 
@@ -271,7 +342,7 @@ describe('define-entity', () => {
 
   it('should define entity with embedded properties', () => {
     const Foo = EntitySchema.define({
-      name:'foo',
+      name: 'foo',
       properties: {
         directly: m.embedded(() => Bar),
         ref: m.embedded(() => Bar, { ref: true }),
@@ -293,10 +364,26 @@ describe('define-entity', () => {
     const FooExpected = new EntitySchema<IFooExpected>({
       name: 'foo',
       properties: {
-        directly:{ kind: ReferenceKind.EMBEDDED, entity: expect.any(Function) },
-        ref:{ kind: ReferenceKind.EMBEDDED, entity: expect.any(Function), ref: true },
-        nullableDirectly:{ kind: ReferenceKind.EMBEDDED, entity: expect.any(Function), nullable: true },
-        nullableRef:{ kind: ReferenceKind.EMBEDDED, entity: expect.any(Function), ref: true, nullable: true },
+        directly: {
+          kind: ReferenceKind.EMBEDDED,
+          entity: expect.any(Function),
+        },
+        ref: {
+          kind: ReferenceKind.EMBEDDED,
+          entity: expect.any(Function),
+          ref: true,
+        },
+        nullableDirectly: {
+          kind: ReferenceKind.EMBEDDED,
+          entity: expect.any(Function),
+          nullable: true,
+        },
+        nullableRef: {
+          kind: ReferenceKind.EMBEDDED,
+          entity: expect.any(Function),
+          ref: true,
+          nullable: true,
+        },
       },
     });
 
@@ -312,7 +399,7 @@ describe('define-entity', () => {
     const ab: ('a' | 'b')[] = ['a', 'b'];
 
     const Foo = EntitySchema.define({
-      name:'foo',
+      name: 'foo',
       properties: {
         items: m.enum(ab),
         arrayItems: m.enum(ab, { array: true }),
@@ -356,8 +443,17 @@ describe('define-entity', () => {
         enum: { enum: true, items: expect.any(Function) },
         enumArray: { enum: true, items: expect.any(Function), array: true },
         enumRef: { enum: true, items: expect.any(Function), ref: true },
-        nullableEnum: { enum: true, items: expect.any(Function), nullable: true },
-        nullableEnumRef: { enum: true, items: expect.any(Function), ref: true, nullable: true },
+        nullableEnum: {
+          enum: true,
+          items: expect.any(Function),
+          nullable: true,
+        },
+        nullableEnumRef: {
+          enum: true,
+          items: expect.any(Function),
+          ref: true,
+          nullable: true,
+        },
       },
     });
 
@@ -375,7 +471,7 @@ describe('define-entity', () => {
     }
 
     const Foo: EntitySchema<IFoo> = EntitySchema.define({
-      name:'foo',
+      name: 'foo',
       properties: {
         ...FooProperties,
         parent: m.manyToOne(() => Foo, { ref: true }),
@@ -393,7 +489,7 @@ describe('define-entity', () => {
 
   it('should infer Required properties', () => {
     const Foo = EntitySchema.define({
-      name:'Foo',
+      name: 'Foo',
       properties: t => ({
         id: m.integer({ primary: true }),
         normal: m.string(),
@@ -422,7 +518,7 @@ describe('define-entity', () => {
     id: m.integer({ primary: true }),
   });
   const WithCreatedAt = EntitySchema.define({
-    name:'WithCreatedAt',
+    name: 'WithCreatedAt',
     properties: {
       createdAt: m.datetime({ onCreate: () => new Date() }),
     },
@@ -439,18 +535,18 @@ describe('define-entity', () => {
   };
 
   const Composed = EntitySchema.define({
-    name:'Composed',
+    name: 'Composed',
     properties: {
       ...WithId,
       ...WithCreatedAt.properties,
       ...WithUpdatedAt,
       ...WithDeletedAt,
     },
-    indexes:[{ properties: ['createdAt'] }],
+    indexes: [{ properties: ['createdAt'] }],
   });
 
   const Foo = EntitySchema.define({
-    name:'Foo',
+    name: 'Foo',
     properties: {
       ...WithCreatedAt.properties,
       id: m.integer({ primary: true }),
@@ -487,4 +583,3 @@ describe('define-entity', () => {
     expect(composed.deletedAt).toBeUndefined();
   });
 });
-

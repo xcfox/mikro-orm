@@ -283,13 +283,11 @@ export interface PropertyOptions<Owner, Value = any> {
   };
 }
 
-
 export type InferValue<Property extends PropertyOptions<unknown>> = NonNullable<Property[typeof __types]>['value'];
 
 export type InferEntityFromProperties<Properties extends Record<string, PropertyOptions<unknown>>> = {
   [K in keyof Properties]: InferValue<Properties[K]>;
 };
-
 
 export interface ReferenceOptions<Owner, Target, ValueType = Target> extends PropertyOptions<Owner, ValueType> {
   /** Set target entity type. */

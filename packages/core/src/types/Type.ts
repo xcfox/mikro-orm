@@ -137,7 +137,6 @@ export abstract class Type<JSType = string, DBType = JSType> {
     return ret === '[Object]' ? `[${name}]` : name + ' ' + ret;
   }
 
-
   declare readonly [__types]?: {
     jsType: JSType;
     dbType: DBType;
