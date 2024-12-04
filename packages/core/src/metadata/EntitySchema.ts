@@ -1,6 +1,5 @@
 import {
   EntityMetadata,
-  type __types,
   type AnyEntity,
   type EntityKey,
   type Constructor,
@@ -404,9 +403,5 @@ export class EntitySchema<Entity = any, Base = never> {
       ...options,
     } as EntityProperty<T>;
   }
-
-  declare readonly [__types]?: {
-    entity: Entity;
-  };
 
 }

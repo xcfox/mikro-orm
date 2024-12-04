@@ -716,6 +716,10 @@ export class EntityMetadata<T = any> {
     return this;
   }
 
+  declare readonly [__types]?: {
+    entity: T;
+  };
+
 }
 
 export interface SimpleColumnMeta {

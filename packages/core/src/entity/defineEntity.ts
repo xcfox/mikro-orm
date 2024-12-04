@@ -6,7 +6,14 @@ import { type InferJSType } from '../types/Type';
 import type { __types, Constructor, Dictionary, EntityMetadata, EntityName, Opt, Ref } from '../typings';
 import type { Collection } from './Collection';
 
-export type InferEntity<T extends EntitySchema> = NonNullable<T[typeof __types]>['entity'];
+
+export type InferEntity<T extends EntityMetadataLike | { meta?: EntityMetadataLike } > =
+ T extends EntityMetadataLike ? NonNullable<T[typeof __types]>['entity'] :
+ T extends { meta?: EntityMetadataLike } ? InferEntity<NonNullable<T['meta']>> : never;
+
+interface EntityMetadataLike {
+  [__types]?: { entity?: any };
+}
 
 export type InferPropertiesFromEntity<T> = {
   [K in keyof T]: PropertyOptions<unknown, T[K]>
