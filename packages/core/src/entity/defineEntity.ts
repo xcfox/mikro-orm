@@ -16,7 +16,7 @@ interface EntityMetadataLike {
 }
 
 export type InferPropertiesFromEntity<T> = {
-  [K in keyof T]: PropertyOptions<unknown, T[K]>
+  [K in keyof T]: PropertyOptions<any, T[K]>
 };
 
 export type TypeType = string | NumberConstructor | StringConstructor | BooleanConstructor | DateConstructor | ArrayConstructor | Constructor<Type<any>> | Type<any>;
@@ -57,26 +57,26 @@ type InferVariantsForRef<Value, Options extends PropertyTypedOptions> = Value ex
 type InferVariantsForArray<Value, Options extends PropertyTypedOptions> = Options extends { array: true } ? Value[] : Value;
 
 export interface PropertyFactory<Value> {
-  <Options extends Omit<PropertyOptions<unknown, Value>, 'type'>>
-    (options?: Options): PropertyOptions<unknown, InferVariants<Value, Options>>;
+  <Options extends Omit<PropertyOptions<any, Value>, 'type'>>
+    (options?: Options): PropertyOptions<any, InferVariants<Value, Options>>;
 }
 
 export interface TypedPropertyFactory {
-  <Value extends TypeType, Options extends Omit<PropertyOptions<unknown, InferType<Value>>, 'type'>>
-    (type: Value, options?: Options): PropertyOptions<unknown, InferVariants<InferType<Value>, Options>>;
+  <Value extends TypeType, Options extends Omit<PropertyOptions<any, InferType<Value>>, 'type'>>
+    (type: Value, options?: Options): PropertyOptions<any, InferVariants<InferType<Value>, Options>>;
 }
 
 // Due to [multiple generics](https://github.com/microsoft/TypeScript/issues/10571), we can only use function overloads for `JsonPropertyFactory`
 export interface JsonPropertyFactory {
-  <Payload = any>(options?: Omit<PropertyOptions<unknown, Payload>, 'type'> & { nullable?: false; ref?: false; onCreate?: undefined; default?: undefined }): PropertyOptions<unknown, Payload>;
-  <Payload = any>(options?: Omit<PropertyOptions<unknown, Payload>, 'type'> & { nullable: true; ref?: false; onCreate?: undefined; default?: undefined }): PropertyOptions<unknown, Payload | null | undefined>;
-  <Payload = any>(options?: Omit<PropertyOptions<unknown, Payload>, 'type'> & { nullable?: false; ref: true; onCreate?: undefined; default?: undefined }): PropertyOptions<unknown, Ref<Payload>>;
-  <Payload = any>(options?: Omit<PropertyOptions<unknown, Payload>, 'type'> & { nullable: true; ref: true; onCreate?: undefined; default?: undefined }): PropertyOptions<unknown, Ref<Payload> | null | undefined>;
+  <Payload = any>(options?: Omit<PropertyOptions<any, Payload>, 'type'> & { nullable?: false; ref?: false; onCreate?: undefined; default?: undefined }): PropertyOptions<any, Payload>;
+  <Payload = any>(options?: Omit<PropertyOptions<any, Payload>, 'type'> & { nullable: true; ref?: false; onCreate?: undefined; default?: undefined }): PropertyOptions<any, Payload | null | undefined>;
+  <Payload = any>(options?: Omit<PropertyOptions<any, Payload>, 'type'> & { nullable?: false; ref: true; onCreate?: undefined; default?: undefined }): PropertyOptions<any, Ref<Payload>>;
+  <Payload = any>(options?: Omit<PropertyOptions<any, Payload>, 'type'> & { nullable: true; ref: true; onCreate?: undefined; default?: undefined }): PropertyOptions<any, Ref<Payload> | null | undefined>;
 
-  <Payload = any>(options?: Omit<PropertyOptions<unknown, Payload>, 'type'> & { nullable?: false; ref?: false } & OptOptions): PropertyOptions<unknown, Opt<Payload>>;
-  <Payload = any>(options?: Omit<PropertyOptions<unknown, Payload>, 'type'> & { nullable: true; ref?: false } & OptOptions): PropertyOptions<unknown, Opt<Payload> | null | undefined>;
-  <Payload = any>(options?: Omit<PropertyOptions<unknown, Payload>, 'type'> & { nullable?: false; ref: true } & OptOptions): PropertyOptions<unknown, Opt<Ref<Payload>>>;
-  <Payload = any>(options?: Omit<PropertyOptions<unknown, Payload>, 'type'> & { nullable: true; ref: true } & OptOptions): PropertyOptions<unknown, Opt<Ref<Payload>> | null | undefined>;
+  <Payload = any>(options?: Omit<PropertyOptions<any, Payload>, 'type'> & { nullable?: false; ref?: false } & OptOptions): PropertyOptions<any, Opt<Payload>>;
+  <Payload = any>(options?: Omit<PropertyOptions<any, Payload>, 'type'> & { nullable: true; ref?: false } & OptOptions): PropertyOptions<any, Opt<Payload> | null | undefined>;
+  <Payload = any>(options?: Omit<PropertyOptions<any, Payload>, 'type'> & { nullable?: false; ref: true } & OptOptions): PropertyOptions<any, Opt<Ref<Payload>>>;
+  <Payload = any>(options?: Omit<PropertyOptions<any, Payload>, 'type'> & { nullable: true; ref: true } & OptOptions): PropertyOptions<any, Opt<Ref<Payload>> | null | undefined>;
 }
 
 export interface ManyToOneFactory {
@@ -104,9 +104,9 @@ export interface ManyToManyFactory {
 }
 
 export interface EmbeddedFactory {
-  <Target extends object, Options extends EmbeddedOptions & PropertyOptions<unknown>>
+  <Target extends object, Options extends EmbeddedOptions & PropertyOptions<any>>
     (entity: () => EntityName<Target>, options?: Options): ({ kind: ReferenceKind.EMBEDDED } & EmbeddedTypeDef<Target> & EmbeddedOptions &
-      PropertyOptions<unknown, InferVariants<Target, Options>>);
+      PropertyOptions<any, InferVariants<Target, Options>>);
 }
 
 export interface EnumFactory {
@@ -186,7 +186,7 @@ export const propertyFactories = {
   enum: enumFactory,
 } as const;
 
-export function defineEntity<Properties extends Record<string, PropertyOptions<unknown, unknown>>>(
+export function defineEntity<Properties extends Record<string, PropertyOptions<any, unknown>>>(
   meta: Omit<Partial<EntityMetadata<InferEntityFromProperties<Properties>>>, 'properties' | 'extends'> & {
     name: string;
     properties: ((factories: typeof propertyFactories) => Properties) | Properties;
@@ -198,6 +198,6 @@ export function defineEntity<Properties extends Record<string, PropertyOptions<u
 
 defineEntity.properties = propertyFactories;
 
-export function defineEntityProperties<Properties extends Record<string, PropertyOptions<unknown, unknown>>>(properties: ((factories: typeof propertyFactories) => Properties) | Properties): Properties {
+export function defineEntityProperties<Properties extends Record<string, PropertyOptions<any, unknown>>>(properties: ((factories: typeof propertyFactories) => Properties) | Properties): Properties {
   return typeof properties === 'function' ? properties(propertyFactories) : properties;
 }
