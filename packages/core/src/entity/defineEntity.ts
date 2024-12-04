@@ -42,7 +42,7 @@ type InferTypeByString<T extends string> =
   T extends 'datetime' ? Date :
   T extends 'boolean' ? boolean :
   T extends 'number' | 'float' | 'int' ? number :
-  T extends 'string' | 'ObjectId' | 'varchar' | 'character' | 'char' | 'text' ? string :
+  T extends 'string' | 'ObjectId' | 'varchar' | 'character' | 'char' | 'text' | 'date' ? string :
   any;
 
 interface PropertyTypedOptions extends Pick<PropertyOptions<any, any>, 'nullable' | 'ref' | 'onCreate' | 'default'> {
