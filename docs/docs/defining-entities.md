@@ -33,9 +33,9 @@ Example definition of a `Book` entity follows. We can switch the tabs to see the
   values={[
     {label: 'reflect-metadata', value: 'reflect-metadata'},
     {label: 'ts-morph', value: 'ts-morph'},
+    {label: 'defineEntity', value: 'define-entity'},
     {label: 'EntitySchema', value: 'entity-schema'},
-  ]
-  }>
+  ]}>
   <TabItem value="reflect-metadata">
 
 ```ts title="./entities/Book.ts"
@@ -80,6 +80,26 @@ export class Book extends CustomBaseEntity {
 ```
 
   </TabItem>
+  <TabItem value="define-entity">
+
+```ts title="./entities/Book.ts"
+const p = defineEntity.properties;
+
+export const Book = defineEntity({
+  name: 'Book',
+  properties: {
+    ...CustomBaseEntity.properties,
+    title: p.string(),
+    author: p.manyToOne(() => Author, { inversedBy:'books' }),
+    publisher: p.manyToOne(() => Publisher, { mappedBy: 'books' }),
+    tags: p.manyToMany(() => Tag, { inversedBy: 'books', fixedOrder:true }),
+  },
+});
+
+export interface IBook extends InferEntity<typeof Book> {}
+```
+
+  </TabItem>
   <TabItem value="entity-schema">
 
 ```ts title="./entities/Book.ts"
@@ -115,9 +135,9 @@ Here is another example of `Author` entity, that was referenced from the `Book` 
   values={[
     {label: 'reflect-metadata', value: 'reflect-metadata'},
     {label: 'ts-morph', value: 'ts-morph'},
+    {label: 'defineEntity', value: 'define-entity'},
     {label: 'EntitySchema', value: 'entity-schema'},
-  ]
-  }>
+  ]}>
   <TabItem value="reflect-metadata">
 
 ```ts title="./entities/Author.ts"
@@ -232,6 +252,42 @@ export class Author {
 ```
 
   </TabItem>
+  <TabItem value="define-entity">
+
+```ts title="./entities/Author.ts"
+const p = defineEntity.properties;
+
+const authorProperties = {
+  _id: p.property('ObjectId', { primary: true }),
+  id: p.string({ serializedPrimaryKey: true }),
+  createdAt: p.datetime(),
+  updatedAt: p.datetime({ onUpdate: () => new Date() }),
+  name: p.string(),
+  email: p.string(),
+  age: p.integer({ nullable: true }),
+  termsAccepted: p.boolean(),
+  identities: p.array({ nullable: true }),
+  born: p.date({ nullable: true }),
+  version: p.integer({ version: true }),
+};
+export const Author: EntitySchema<IAuthor> = defineEntity({
+  name: 'Author',
+  properties: {
+    ...authorProperties,
+    books: p.oneToMany(() => Book, { mappedBy: book => book.author }),
+    friends: p.manyToMany(() => Author),
+    favouriteBook: p.oneToOne(() => Book, { nullable: true }),
+  },
+});
+
+export interface IAuthor extends InferEntityFromProperties<typeof AuthorProperties> {
+  books: Collection<IBook>;
+  friends: Collection<IAuthor>;
+  favouriteBook: IBook | null | undefined;
+}
+```
+
+  </TabItem>  
   <TabItem value="entity-schema">
 
 ```ts title="./entities/Author.ts"
@@ -297,9 +353,9 @@ With the default `reflect-metadata` provider, we need to mark each optional prop
   values={[
     {label: 'reflect-metadata', value: 'reflect-metadata'},
     {label: 'ts-morph', value: 'ts-morph'},
+    {label: 'defineEntity', value: 'define-entity'},
     {label: 'EntitySchema', value: 'entity-schema'},
-  ]
-  }>
+  ]}>
   <TabItem value="reflect-metadata">
 
 ```ts title="./entities/Author.ts"
@@ -313,6 +369,15 @@ favouriteBook?: Book;
 ```ts title="./entities/Author.ts"
 @ManyToOne()
 favouriteBook?: Book;
+```
+
+  </TabItem>
+  <TabItem value="define-entity">
+
+```ts title="./entities/Author.ts"
+properties: {
+  favouriteBook: p.manyToOne(() => Book, { nullable: true }),
+},
 ```
 
   </TabItem>
@@ -339,9 +404,9 @@ defaultValue="reflect-metadata"
 values={[
 {label: 'reflect-metadata', value: 'reflect-metadata'},
 {label: 'ts-morph', value: 'ts-morph'},
+{label: 'defineEntity', value: 'define-entity'},
 {label: 'EntitySchema', value: 'entity-schema'},
-]
-}>
+]}>
 <TabItem value="reflect-metadata">
 
 ```ts title="./entities/Author.ts"
@@ -367,6 +432,17 @@ bar: string & Opt = 'abc';
 
 @Property()
 baz: Date & Opt = new Date();
+```
+
+  </TabItem>
+  <TabItem value="define-entity">
+
+```ts title="./entities/Author.ts"
+properties: {
+  foo: p.integer({ onCreate: () => 1 }),
+  bar: p.string({ onCreate: () => 'abc' }),
+  baz: p.datetime({ onCreate: () => new Date() }),
+},
 ```
 
   </TabItem>
@@ -393,9 +469,9 @@ defaultValue="reflect-metadata"
 values={[
 {label: 'reflect-metadata', value: 'reflect-metadata'},
 {label: 'ts-morph', value: 'ts-morph'},
+{label: 'defineEntity', value: 'define-entity'},
 {label: 'EntitySchema', value: 'entity-schema'},
-]
-}>
+]}>
 <TabItem value="reflect-metadata">
 
 ```ts title="./entities/Author.ts"
@@ -421,6 +497,17 @@ bar!: string & Opt;
 
 @Property({ defaultRaw: 'now' })
 baz!: Date & Opt;
+```
+
+  </TabItem>
+  <TabItem value="define-entity">
+
+```ts title="./entities/Author.ts"
+properties: {
+  foo: p.integer({ default: 1 }),
+  bar: p.string({ default: 'abc' }),
+  baz: p.datetime({ defaultRaw: 'now' }),
+},
 ```
 
   </TabItem>
@@ -455,9 +542,9 @@ defaultValue="reflect-metadata"
 values={[
 {label: 'reflect-metadata', value: 'reflect-metadata'},
 {label: 'ts-morph', value: 'ts-morph'},
+{label: 'defineEntity', value: 'define-entity'},
 {label: 'EntitySchema', value: 'entity-schema'},
-]
-}>
+]}>
 <TabItem value="reflect-metadata">
 
 ```ts title="./entities/User.ts"
@@ -534,6 +621,22 @@ export const enum UserStatus {
 ```
 
   </TabItem>
+  <TabItem value="define-entity">
+
+```ts title="./entities/User.ts"
+properties: {
+  // string enum
+  role: p.enum(() => UserRole),
+  // numeric enum
+  status: p.enum(() => UserStatus),
+  // string enum defined outside of this file
+  outside: p.enum(() => OutsideEnum),
+  // string enum defined outside of this file, may be null
+  outsideNullable: p.enum(() => OutsideNullableEnum, { nullable: true }),
+},
+```
+
+  </TabItem>
   <TabItem value="entity-schema">
 
 ```ts title="./entities/User.ts"
@@ -562,9 +665,9 @@ defaultValue="reflect-metadata"
 values={[
 {label: 'reflect-metadata', value: 'reflect-metadata'},
 {label: 'ts-morph', value: 'ts-morph'},
+{label: 'defineEntity', value: 'define-entity'},
 {label: 'EntitySchema', value: 'entity-schema'},
-]
-}>
+]}>
 <TabItem value="reflect-metadata">
 
 ```ts title="./entities/User.ts"
@@ -600,6 +703,24 @@ export enum UserRole {
   MODERATOR = 'moderator',
   USER = 'user',
 }
+```
+
+  </TabItem>
+  <TabItem value="define-entity">
+
+```ts title="./entities/User.ts"
+export enum UserRole {
+  ADMIN = 'admin',
+  MODERATOR = 'moderator',
+  USER = 'user',
+}
+
+const User = defineEntity({
+  name: 'User',
+  properties: {
+    role: p.enum(() => UserRole, { nativeEnumName: 'user_role' }),
+  }
+})
 ```
 
   </TabItem>
@@ -630,9 +751,9 @@ defaultValue="reflect-metadata"
 values={[
 {label: 'reflect-metadata', value: 'reflect-metadata'},
 {label: 'ts-morph', value: 'ts-morph'},
+{label: 'defineEntity', value: 'define-entity'},
 {label: 'EntitySchema', value: 'entity-schema'},
-]
-}>
+]}>
 <TabItem value="reflect-metadata">
 
 ```ts title="./entities/User.ts"
@@ -656,6 +777,20 @@ enum Role {
 
 @Enum({ default: [Role.User] })
 roles = [Role.User];
+```
+
+  </TabItem>
+  <TabItem value="define-entity">
+
+```ts title="./entities/User.ts"
+enum Role {
+  User = 'user',
+  Admin = 'admin',
+}
+
+properties: {
+  roles: p.enum({ array: true, default: [Role.User], items: () => Role }),
+},
 ```
 
   </TabItem>
@@ -685,9 +820,9 @@ defaultValue="reflect-metadata"
 values={[
 {label: 'reflect-metadata', value: 'reflect-metadata'},
 {label: 'ts-morph', value: 'ts-morph'},
+{label: 'defineEntity', value: 'define-entity'},
 {label: 'EntitySchema', value: 'entity-schema'},
-]
-}>
+]}>
 <TabItem value="reflect-metadata">
 
 ```ts title="./entities/User.ts"
@@ -701,6 +836,13 @@ user: number;
 ```ts title="./entities/User.ts"
 @ManyToOne(() => User, { mapToPk: true })
 user: number;
+```
+
+  </TabItem>
+  <TabItem value="define-entity">
+
+```ts title="./entities/User.ts"
+// TODO: defineEntity does not support mapToPk yet
 ```
 
   </TabItem>
@@ -723,9 +865,9 @@ defaultValue="reflect-metadata"
 values={[
 {label: 'reflect-metadata', value: 'reflect-metadata'},
 {label: 'ts-morph', value: 'ts-morph'},
+{label: 'defineEntity', value: 'define-entity'},
 {label: 'EntitySchema', value: 'entity-schema'},
-]
-}>
+]}>
 <TabItem value="reflect-metadata">
 
 ```ts title="./entities/User.ts"
@@ -739,6 +881,13 @@ user: [string, string]; // [first_name, last_name]
 ```ts title="./entities/User.ts"
 @ManyToOne(() => User, { mapToPk: true })
 user: [string, string]; // [first_name, last_name]
+```
+
+  </TabItem>
+  <TabItem value="define-entity">
+
+```ts title="./entities/User.ts"
+// TODO: defineEntity does not support mapToPk yet
 ```
 
   </TabItem>
@@ -763,9 +912,9 @@ defaultValue="reflect-metadata"
 values={[
 {label: 'reflect-metadata', value: 'reflect-metadata'},
 {label: 'ts-morph', value: 'ts-morph'},
+{label: 'defineEntity', value: 'define-entity'},
 {label: 'EntitySchema', value: 'entity-schema'},
-]
-}>
+]}>
 <TabItem value="reflect-metadata">
 
 ```ts title="./entities/Box.ts"
@@ -779,6 +928,15 @@ objectVolume?: number;
 ```ts title="./entities/Box.ts"
 @Formula('obj_length * obj_height * obj_width')
 objectVolume?: number;
+```
+
+  </TabItem>
+  <TabItem value="define-entity">
+
+```ts title="./entities/Box.ts"
+properties: {
+  objectVolume: p.float({ formula: 'obj_length * obj_height * obj_width' }),
+},
 ```
 
   </TabItem>
@@ -801,9 +959,9 @@ defaultValue="reflect-metadata"
 values={[
 {label: 'reflect-metadata', value: 'reflect-metadata'},
 {label: 'ts-morph', value: 'ts-morph'},
+{label: 'defineEntity', value: 'define-entity'},
 {label: 'EntitySchema', value: 'entity-schema'},
-]
-}>
+]}>
 <TabItem value="reflect-metadata">
 
 ```ts title="./entities/Box.ts"
@@ -817,6 +975,15 @@ objectVolume?: number;
 ```ts title="./entities/Box.ts"
 @Formula(alias => `${alias}.obj_length * ${alias}.obj_height * ${alias}.obj_width`)
 objectVolume?: number;
+```
+
+  </TabItem>
+  <TabItem value="define-entity">
+
+```ts title="./entities/Box.ts"
+properties: {
+  objectVolume: p.float({ formula: alias => `${alias}.obj_length * ${alias}.obj_height * ${alias}.obj_width` }),
+},
 ```
 
   </TabItem>
@@ -843,9 +1010,9 @@ defaultValue="reflect-metadata"
 values={[
 {label: 'reflect-metadata', value: 'reflect-metadata'},
 {label: 'ts-morph', value: 'ts-morph'},
+{label: 'defineEntity', value: 'define-entity'},
 {label: 'EntitySchema', value: 'entity-schema'},
-]
-}>
+]}>
 <TabItem value="reflect-metadata">
 
 ```ts title="./entities/Author.ts"
@@ -902,6 +1069,31 @@ export class Author {
 
 }
 
+```
+
+  </TabItem>
+  <TabItem value="define-entity">
+
+```ts title="./entities/Author.ts"
+const p = defineEntity.properties;
+export const Author = defineEntity({
+  name: 'Author',
+  indexes: [
+    { properties: ['name', 'age'] }, // compound index, with generated name
+    { name: 'custom_idx_name', properties: ['name'] }, // simple index, with custom name
+    { name: 'custom_index_expr', expression: 'alter table `author` add index `custom_index_expr`(`title`)' },
+  ],
+  uniques: [
+    { properties: ['name', 'email'] },
+  ],
+  properties: {
+    ...CustomBaseEntity.properties,
+    email:  p.string({ unique: true }), // generated name
+    age: p.integer({ nullable: true, index: true }), // generated name
+    born: p.date({ nullable: true, index: 'born_index' }),
+    title: p.string(),
+  },
+});
 ```
 
   </TabItem>
@@ -942,9 +1134,9 @@ defaultValue="reflect-metadata"
 values={[
 {label: 'reflect-metadata', value: 'reflect-metadata'},
 {label: 'ts-morph', value: 'ts-morph'},
+{label: 'defineEntity', value: 'define-entity'},
 {label: 'EntitySchema', value: 'entity-schema'},
-]
-}>
+]}>
 <TabItem value="reflect-metadata">
 
 ```ts title="./entities/Book.ts"
@@ -1003,6 +1195,28 @@ export class Book {
 ```
 
   </TabItem>
+  <TabItem value="define-entity">
+
+```ts title="./entities/Book.ts"
+export const BookSchema = defineEntity({
+  name: 'Book',
+  checks: [
+    { expression: 'price1 >= 0' },
+    { name: 'foo', expression: columns => `${columns.price1} >= 0` },
+    { expression: columns => `${columns.price1} >= 0` },
+    { property: 'price2', expression: 'price2 >= 0' },
+    { property: 'price3', expression: columns => `${columns.price3} >= 0` },
+  ],
+  properties: {
+    id: p.integer({ primary: true }),
+    price1: p.integer(),
+    price2: p.integer(),
+    price3: p.integer(),
+  },
+});
+```
+
+  </TabItem>
   <TabItem value="entity-schema">
 
 ```ts title="./entities/Book.ts"
@@ -1012,8 +1226,8 @@ export const BookSchema = new EntitySchema({
     { expression: 'price1 >= 0' },
     { name: 'foo', expression: columns => `${columns.price1} >= 0` },
     { expression: columns => `${columns.price1} >= 0` },
-    { propertyName: 'price2', expression: 'price2 >= 0' },
-    { propertyName: 'price3', expression: columns => `${columns.price3} >= 0` },
+    { property: 'price2', expression: 'price2 >= 0' },
+    { property: 'price3', expression: columns => `${columns.price3} >= 0` },
   ],
   properties: {
     id: { type: 'number', primary: true },
@@ -1059,9 +1273,9 @@ defaultValue="reflect-metadata"
 values={[
 {label: 'reflect-metadata', value: 'reflect-metadata'},
 {label: 'ts-morph', value: 'ts-morph'},
+{label: 'defineEntity', value: 'define-entity'},
 {label: 'EntitySchema', value: 'entity-schema'},
-]
-}>
+]}>
 <TabItem value="reflect-metadata">
 
 ```ts title="./entities/Book.ts"
@@ -1075,6 +1289,15 @@ text: string;
 ```ts title="./entities/Book.ts"
 @Property({ columnType: 'text', lazy: true })
 text: string;
+```
+
+  </TabItem>
+  <TabItem value="define-entity">
+
+```ts title="./entities/Book.ts"
+properties: {
+  text: p.text({ lazy: true }),
+}
 ```
 
   </TabItem>
@@ -1151,8 +1374,7 @@ values={[
 {label: 'reflect-metadata', value: 'reflect-metadata'},
 {label: 'ts-morph', value: 'ts-morph'},
 {label: 'EntitySchema', value: 'entity-schema'},
-]
-}>
+]}>
 <TabItem value="reflect-metadata">
 
 ```ts title="./entities/User.ts"
@@ -1266,9 +1488,9 @@ defaultValue="reflect-metadata"
 values={[
 {label: 'reflect-metadata', value: 'reflect-metadata'},
 {label: 'ts-morph', value: 'ts-morph'},
+{label: 'defineEntity', value: 'define-entity'},
 {label: 'EntitySchema', value: 'entity-schema'},
-]
-}>
+]}>
 <TabItem value="reflect-metadata">
 
 ```ts title="./entities/CustomBaseEntity.ts"
@@ -1306,6 +1528,25 @@ export abstract class CustomBaseEntity {
   updatedAt = new Date();
 
 }
+```
+
+  </TabItem>
+  <TabItem value="define-entity">
+
+```ts title="./entities/CustomBaseEntity.ts"
+import { v4 } from 'uuid';
+
+export const CustomBaseEntity = defineEntityProperties({
+  name: 'CustomBaseEntity',
+  abstract: true,
+  properties:{
+    uuid: p.uuid({ onCreate: () => v4(), primary: true }),
+    createdAt: p.datetime({ onCreate: () => new Date(), nullable: true }),
+    updatedAt: p.datetime({ onCreate: () => new Date(), onUpdate: () => new Date(), nullable: true }),
+  }
+});
+
+export interface ICustomBaseEntity extends InferEntity<typeof CustomBaseEntity> {}
 ```
 
   </TabItem>
@@ -1353,9 +1594,9 @@ defaultValue="reflect-metadata"
 values={[
 {label: 'reflect-metadata', value: 'reflect-metadata'},
 {label: 'ts-morph', value: 'ts-morph'},
+{label: 'defineEntity', value: 'define-entity'},
 {label: 'EntitySchema', value: 'entity-schema'},
-]
-}>
+]}>
 <TabItem value="reflect-metadata">
 
 ```ts title="./entities/User.ts"
@@ -1403,6 +1644,29 @@ export class User {
   fullName2!: string & Opt;
 
 }
+```
+
+  </TabItem>
+  <TabItem value="define-entity">
+
+```ts title="./entities/User.ts"
+export const User = defineEntity({
+  name: 'User',
+  properties: {
+    id: p.integer({ primary: true }),
+    firstName: p.string({ length: 50 }),
+    lastName: p.string({ length: 50 }),
+    fullName: p.string({
+      length: 100,
+      generated: cols => `(concat(${cols.firstName}, ' ', ${cols.lastName})) stored`,
+    }),
+    fullName2:p.string({
+      columnType: `varchar(100) generated always as (concat(first_name, ' ', last_name)) virtual`,
+    }),
+  },
+});
+
+export interface IUser extends InferEntity<typeof User> {};
 ```
 
   </TabItem>
@@ -1449,9 +1713,9 @@ defaultValue="reflect-metadata"
 values={[
 {label: 'reflect-metadata', value: 'reflect-metadata'},
 {label: 'ts-morph', value: 'ts-morph'},
+{label: 'defineEntity', value: 'define-entity'},
 {label: 'EntitySchema', value: 'entity-schema'},
-]
-}>
+]}>
 <TabItem value="reflect-metadata">
 
 ```ts title="./entities/User.ts"
@@ -1475,6 +1739,20 @@ export class User {
   id!: number;
 
 }
+```
+
+  </TabItem>
+  <TabItem value="define-entity">
+
+```ts title="./entities/User.ts"
+export const User = defineEntity({
+  name: 'User',
+  properties: {
+    id: p.integer({ primary: true, generated: 'identity' }),
+  },
+});
+
+export interface IUser extends InferEntity<typeof User> {};
 ```
 
   </TabItem>
@@ -1506,9 +1784,9 @@ defaultValue="reflect-metadata"
 values={[
 {label: 'reflect-metadata', value: 'reflect-metadata'},
 {label: 'ts-morph', value: 'ts-morph'},
+{label: 'defineEntity', value: 'define-entity'},
 {label: 'EntitySchema', value: 'entity-schema'},
-]
-}>
+]}>
 <TabItem value="reflect-metadata">
 
 ```ts title="./entities/Book.ts"
@@ -1553,16 +1831,33 @@ export class Book {
 ```
 
   </TabItem>
+  <TabItem value="define-entity">
+
+```ts title="./entities/Book.ts"
+export const Book = defineEntity({
+  name: 'Book',
+  properties: {
+    id: p.integer({ primary: true }),
+    title: p.string(),
+    author: p.manyToOne(() => Author),
+    publisher: p.manyToOne(() => Publisher, { ref: true, nullable: true }),
+  },
+});
+
+export interface Book extends InferEntity<typeof Book> {};
+```
+
+  </TabItem>
   <TabItem value="entity-schema">
 
 ```ts title="./entities/Book.ts"
-export interface Book {
+export interface IBook {
   id: number;
   title: string;
   author: Author;
 }
 
-export const BookSchema = new EntitySchema<Book>({
+export const Book = new EntitySchema<IBook>({
   name: 'Book',
   properties: {
     id: { type: Number, primary: true },
@@ -1584,9 +1879,9 @@ defaultValue="reflect-metadata"
 values={[
 {label: 'reflect-metadata', value: 'reflect-metadata'},
 {label: 'ts-morph', value: 'ts-morph'},
+{label: 'defineEntity', value: 'define-entity'},
 {label: 'EntitySchema', value: 'entity-schema'},
-]
-}>
+]}>
 <TabItem value="reflect-metadata">
 
 ```ts title="./entities/Book.ts"
@@ -1626,6 +1921,22 @@ export class Book {
   author!: Author;
 
 }
+```
+
+  </TabItem>
+  <TabItem value="define-entity">
+
+```ts title="./entities/Book.ts"
+export const Book = defineEntity({
+  name: 'Book',
+  properties: {
+    uuid: p.uuid({ onCreate: () => v4(), primary: true }),
+    title: p.string(),
+    author: p.manyToOne(() => Author),
+  },
+});
+
+export interface Book extends InferEntity<typeof Book> {};
 ```
 
   </TabItem>
@@ -1659,9 +1970,9 @@ defaultValue="reflect-metadata"
 values={[
 {label: 'reflect-metadata', value: 'reflect-metadata'},
 {label: 'ts-morph', value: 'ts-morph'},
+{label: 'defineEntity', value: 'define-entity'},
 {label: 'EntitySchema', value: 'entity-schema'},
-]
-}>
+]}>
 <TabItem value="reflect-metadata">
 
 ```ts title="./entities/Book.ts"
@@ -1697,6 +2008,22 @@ export class Book {
   author!: Author;
 
 }
+```
+
+  </TabItem>
+  <TabItem value="define-entity">
+
+```ts title="./entities/Book.ts"
+export const Book = defineEntity({
+  name: 'Book',
+  properties: {
+    uuid: p.uuid({ defaultRaw: 'gen_random_uuid()', primary: true }),
+    title: p.string(),
+    author: p.manyToOne(() => Author),
+  },
+});
+
+export interface Book extends InferEntity<typeof Book> {};
 ```
 
   </TabItem>
@@ -1752,9 +2079,9 @@ defaultValue="reflect-metadata"
 values={[
 {label: 'reflect-metadata', value: 'reflect-metadata'},
 {label: 'ts-morph', value: 'ts-morph'},
+{label: 'defineEntity', value: 'define-entity'},
 {label: 'EntitySchema', value: 'entity-schema'},
-]
-}>
+]}>
 <TabItem value="reflect-metadata">
 
 ```ts title="./entities/CustomBaseEntity.ts"
@@ -1781,6 +2108,15 @@ export class Book {
 ```
 
   </TabItem>
+  <TabItem value="define-entity">
+
+```ts title="./entities/CustomBaseEntity.ts"
+properties: {
+  id: p.bigint(),
+},
+```
+
+  </TabItem>
   <TabItem value="entity-schema">
 
 ```ts title="./entities/CustomBaseEntity.ts"
@@ -1802,9 +2138,9 @@ defaultValue="reflect-metadata"
 values={[
 {label: 'reflect-metadata', value: 'reflect-metadata'},
 {label: 'ts-morph', value: 'ts-morph'},
+{label: 'defineEntity', value: 'define-entity'},
 {label: 'EntitySchema', value: 'entity-schema'},
-]
-}>
+]}>
 <TabItem value="reflect-metadata">
 
 ```ts title="./entities/Book.ts"
@@ -1846,6 +2182,27 @@ export class Book {
   author!: Author;
 
 }
+```
+
+  </TabItem>
+  <TabItem value="entity-schema">
+
+```ts title="./entities/Book.ts"
+export interface IBook {
+  _id: ObjectId;
+  id: string;
+  title: string;
+  author: Author;
+}
+
+export const Book = new EntitySchema<IBook>({
+  name: 'Book',
+  properties: {
+    _id: p.property('ObjectId', { primary: true }),
+    id: p.string({ serializedPrimaryKey: true }),
+    title: { type: String },
+  },
+});
 ```
 
   </TabItem>
