@@ -25,6 +25,8 @@ export type TypeDef<Target> = { type: TypeType } | { entity: string | (() => str
 
 export type EmbeddedTypeDef<Target> = { type: TypeType } | { entity: string | (() => string | EntityName<Target> | EntityName<Target>[]) };
 
+type InferEntityByName<T extends EntityName<any>> = T extends EntityName<infer U> ? U : never;
+
 type InferType<T extends TypeType> =
   T extends string ? InferTypeByString<T> :
   T extends NumberConstructor ? number :
@@ -107,6 +109,10 @@ export interface EmbeddedFactory {
   <Target extends object, Options extends EmbeddedOptions & PropertyOptions<any>>
     (entity: () => EntityName<Target>, options?: Options): ({ kind: ReferenceKind.EMBEDDED } & EmbeddedTypeDef<Target> & EmbeddedOptions &
       PropertyOptions<any, InferVariants<Target, Options>>);
+
+  <Entities extends EntityName<any>[], Options extends EmbeddedOptions & PropertyOptions<any>>
+    (entity: () => Entities, options?: Options): ({ kind: ReferenceKind.EMBEDDED } & EmbeddedTypeDef<InferEntityByName<Entities[number]>> & EmbeddedOptions &
+      PropertyOptions<any, InferVariants<InferEntityByName<Entities[number]>, Options>>);
 }
 
 export interface EnumFactory {
@@ -143,7 +149,7 @@ const manyToManyFactory: ManyToManyFactory = (entity, options) => {
   return { ...options, kind: ReferenceKind.MANY_TO_MANY, entity } as any;
 };
 
-const embeddedFactory: EmbeddedFactory = (entity: () => any, options) => {
+const embeddedFactory: EmbeddedFactory = (entity: () => any, options: any) => {
   return { ...options, kind: ReferenceKind.EMBEDDED, entity };
 };
 
