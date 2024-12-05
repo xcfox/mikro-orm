@@ -155,6 +155,79 @@ export const schema = new EntitySchema<FooBar>({
 
 > As a value for `type` you can also use one of `String`/`Number`/`Boolean`/`Date`.
 
+## `defineEntity`
+
+`defineEntity` is built on top of `EntitySchema`, leveraging TypeScript's type inference capabilities to generate entity types. This reduces the amount of code while providing robust type safety and null safety.
+
+```ts
+import { type InferEntity, type InferEntityFromProperties, defineEntity, defineEntityProperties } from '@mikro-orm/core';
+
+// We use `p` as a shortcut for `defineEntity.properties`
+const p = defineEntity.properties;
+
+// It is more recommended to use composition over inheritance when using `defineEntity`
+export const baseProperties = defineEntityProperties({
+  id: p.integer({ primary: true }),
+  createdAt: p.datetime({ onCreate: () => new Date() }),
+  updatedAt: p.datetime({ onCreate: () => new Date(), onUpdate: () => new Date() }),
+});
+
+// We can use `InferEntityFromProperties` to infer the type of an entity from its properties
+export interface IBase extends InferEntityFromProperties<typeof baseProperties> {}
+
+export const Book = defineEntity({
+  name: 'Book',
+  properties: {
+    ...baseProperties,
+    title: p.string(),
+    author: p.manyToOne(() => Author, { inversedBy: 'books' }),
+    publisher: p.oneToOne(() => Publisher, { inversedBy: 'books' }),
+    tags: p.manyToMany(() => BookTag, { inversedBy: 'books', fixedOrder: true }),
+  },
+});
+
+// We can use `InferEntity` to infer the type of an entity
+export interface IBook extends InferEntity<typeof Book> {}
+```
+
+`defineEntity.properties` provides all [MikroORM built-in types](./custom-types#types-provided-by-mikroorm). To use [custom types](./custom-types), we can also use `p.property()`.
+
+```ts
+const properties = defineEntityProperties(p => ({
+  string: p.string(),
+  float: p.float(),
+  boolean: p.boolean(),
+  json: p.json<{ foo: string; bar: number }>({ nullable: true }),
+  stringArray: p.property(ArrayType<string>, { nullable: true }),
+  numericArray: p.property(new ArrayType(i => +i), { nullable: true }),
+  point: p.property(PointType, { nullable: true }),
+}));
+```
+
+### Solving circular references
+
+Due to a limitation in TypeScript, when our Entity contains circular references, the entity types cannot be automatically inferred. In these cases, we need to manually declare the properties of the circular reference relationships.
+
+```ts
+const userProperties = defineEntityProperties({
+  ...baseProperties,
+  name: p.string(),
+  email: p.string({ unique: true }),
+});
+
+export interface IUser extends InferEntityFromProperties<typeof userProperties> {
+  friend: IUser | null | undefined;
+}
+
+export const User: EntitySchema<IUser> = defineEntity({
+  name: 'User',
+  properties: {
+    ...userProperties,
+    friend: p.manyToOne(() => User, { nullable: true }),
+  },
+});
+```
+
 ## MongoDB example
 
 ```ts
