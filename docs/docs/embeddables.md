@@ -206,7 +206,7 @@ address: { kind: 'embedded', entity: 'Address', onCreate: () => new Address() },
   <TabItem value="entity-schema">
 
 ```ts title="./entities/User.ts"
-address: p.embedded(()=> Address, { onCreate: () => ({}) }),
+address: p.embedded(() => Address, { onCreate: () => ({}) }),
 ```
 
   </TabItem>
@@ -432,14 +432,14 @@ address!: Address;
   </TabItem>
   <TabItem value="define-entity">
 
-```ts title="./entities/User.ts"@Entity()
-address: p.embedded(()=> Address, { prefix: false }),
+```ts title="./entities/User.ts"
+address: p.embedded(() => Address, { prefix: false }),
 ```
 
   </TabItem>
   <TabItem value="entity-schema">
 
-```ts title="./entities/User.ts"@Entity()
+```ts title="./entities/User.ts"
 address: { kind: 'embedded', entity: 'Address', prefix: false },
 ```
 
