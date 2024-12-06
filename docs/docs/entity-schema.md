@@ -2,6 +2,9 @@
 title: Defining Entities via EntitySchema
 ---
 
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 With `EntitySchema` helper we define the schema programmatically.
 
 ```ts title="./entities/Book.ts"
@@ -257,6 +260,50 @@ export const schema = new EntitySchema<BookTag>({
 
 Entity hooks can be defined either as a property name, or as a function. When defined as a function, the `this` argument will be the entity instance. Arrow functions can be used if desired, and the entity will be available at args.entity. See [Events and Lifecycle Hooks](./events.md) section for more details on `EventArgs`.
 
+<Tabs
+groupId="entity-def"
+defaultValue="define-entity"
+values={[
+{label: 'defineEntity', value: 'define-entity'},
+{label: 'EntitySchema', value: 'entity-schema'},
+]}>
+  <TabItem value="define-entity">
+
+```ts
+import { type EventSubscriber, type InferEntity, type EventArgs, defineEntity } from '@mikro-orm/core';
+
+// Defined outside of entity class - this bound to entity instance
+const beforeCreate = function (this: IBookTag) {
+  this.version = 1;
+} satisfies EventSubscriber['beforeCreate'];
+
+// Defined outside, this available via args.
+const beforeUpdate: EventSubscriber['beforeUpdate'] = (args: EventArgs<IBookTag>) => {
+  args.entity.version++;
+};
+
+const p = defineEntity.properties;
+export const BookTag = defineEntity({
+  name: 'BookTag',
+  hooks: {
+    beforeCreate: [beforeCreate], // normal function
+    beforeUpdate: [beforeUpdate], // arrow function
+  },
+  properties: {
+    _id: p.property('ObjectId', { primary: true }),
+    id: p.string({ serializedPrimaryKey: true }),
+    version: p.integer(),
+    name: p.string(),
+    books: p.manyToOne(() => Book, { mappedBy: book => book.tags }),
+  },
+});
+
+export interface IBookTag extends InferEntity<typeof BookTag> {}
+
+```
+  </TabItem>
+  <TabItem value="entity-schema">
+
 ```ts
 export class BookTag {
   _id!: ObjectId;
@@ -300,3 +347,5 @@ export const schema = new EntitySchema({
   },
 });
 ```
+  </TabItem>
+</Tabs>
