@@ -843,7 +843,9 @@ user: number;
   <TabItem value="define-entity">
 
 ```ts title="./entities/User.ts"
-// TODO: defineEntity does not support mapToPk yet
+properties: {
+  user: p.manyToOne(() => User, { mapToPk: true }) as PropertyOptions<unknown, number>,
+},
 ```
 
   </TabItem>
@@ -888,7 +890,9 @@ user: [string, string]; // [first_name, last_name]
   <TabItem value="define-entity">
 
 ```ts title="./entities/User.ts"
-// TODO: defineEntity does not support mapToPk yet
+properties: {
+  user: p.manyToOne(() => User, { mapToPk: true }) as PropertyOptions<unknown, [string, string]>,
+},
 ```
 
   </TabItem>
