@@ -517,7 +517,7 @@ describe('define-entity', () => {
     assert<IsExact<RequiredFoo, RequiredFooExpected>>(true);
   });
 
-  const WithId = defineEntityProperties({
+  const withId = defineEntityProperties({
     id: p.integer({ primary: true }),
   });
   const WithCreatedAt = defineEntity({
@@ -527,23 +527,23 @@ describe('define-entity', () => {
     },
     abstract: true,
   });
-  const WithUpdatedAt = {
+  const withUpdatedAt = {
     updatedAt: p.datetime({
       onCreate: () => new Date(),
       onUpdate: () => new Date(),
     }),
   };
-  const WithDeletedAt = {
+  const withDeletedAt = {
     deletedAt: p.datetime({ nullable: true }),
   };
 
   const Composed = defineEntity({
     name: 'Composed',
     properties: {
-      ...WithId,
+      ...withId,
       ...WithCreatedAt.properties,
-      ...WithUpdatedAt,
-      ...WithDeletedAt,
+      ...withUpdatedAt,
+      ...withDeletedAt,
     },
     indexes: [{ properties: ['createdAt'] }],
   });
