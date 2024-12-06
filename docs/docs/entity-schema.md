@@ -233,6 +233,34 @@ export const User: EntitySchema<IUser> = defineEntity({
 
 ## MongoDB example
 
+<Tabs
+groupId="entity-def"
+defaultValue="define-entity"
+values={[
+{label: 'defineEntity', value: 'define-entity'},
+{label: 'EntitySchema', value: 'entity-schema'},
+]}>
+  <TabItem value="define-entity">
+
+```ts
+const p = defineEntity.properties;
+
+export const BookTag = defineEntity({
+  name: 'BookTag',
+  properties: {
+    _id: p.property('ObjectId', { primary: true }),
+    id: p.string({ serializedPrimaryKey: true }),
+    name: p.string(),
+    books: p.manyToOne(() => Book, { mappedBy: book => book.tags }),
+  },
+});
+
+export interface IBookTag extends InferEntity<typeof BookTag> {}
+```
+
+  </TabItem>
+  <TabItem value="entity-schema">
+
 ```ts
 export class BookTag {
   _id!: ObjectId;
@@ -256,6 +284,9 @@ export const schema = new EntitySchema<BookTag>({
 });
 ```
 
+  </TabItem>
+</Tabs>
+
 ## Hooks example
 
 Entity hooks can be defined either as a property name, or as a function. When defined as a function, the `this` argument will be the entity instance. Arrow functions can be used if desired, and the entity will be available at args.entity. See [Events and Lifecycle Hooks](./events.md) section for more details on `EventArgs`.
@@ -273,9 +304,9 @@ values={[
 import { type EventSubscriber, type InferEntity, type EventArgs, defineEntity } from '@mikro-orm/core';
 
 // Defined outside of entity class - this bound to entity instance
-const beforeCreate = function (this: IBookTag) {
+const beforeCreate: EventSubscriber['beforeCreate'] = function (this: IBookTag) {
   this.version = 1;
-} satisfies EventSubscriber['beforeCreate'];
+};
 
 // Defined outside, this available via args.
 const beforeUpdate: EventSubscriber['beforeUpdate'] = (args: EventArgs<IBookTag>) => {
