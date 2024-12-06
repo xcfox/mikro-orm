@@ -199,14 +199,14 @@ address = new Address();
   <TabItem value="define-entity">
 
 ```ts title="./entities/User.ts"
-address: { kind: 'embedded', entity: 'Address', onCreate: () => new Address() },
+address: p.embedded(() => Address, { onCreate: () => ({}) }),
 ```
 
   </TabItem>
   <TabItem value="entity-schema">
 
 ```ts title="./entities/User.ts"
-address: p.embedded(() => Address, { onCreate: () => ({}) }),
+address: { kind: 'embedded', entity: 'Address', onCreate: () => new Address() },
 ```
 
   </TabItem>

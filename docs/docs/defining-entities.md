@@ -790,7 +790,7 @@ enum Role {
 }
 
 properties: {
-  roles: p.enum({ array: true, default: [Role.User], items: () => Role }),
+  roles: p.enum(() => Role, { array: true, default: [Role.User] }),
 },
 ```
 
@@ -2190,24 +2190,20 @@ export class Book {
 ```
 
   </TabItem>
-  <TabItem value="entity-schema">
+  <TabItem value="define-entity">
 
 ```ts title="./entities/Book.ts"
-export interface IBook {
-  _id: ObjectId;
-  id: string;
-  title: string;
-  author: Author;
-}
-
 export const Book = new EntitySchema<IBook>({
   name: 'Book',
   properties: {
     _id: p.property('ObjectId', { primary: true }),
     id: p.string({ serializedPrimaryKey: true }),
-    title: { type: String },
+    title: p.string(),
+    author: p.manyToOne(() => Author),
   },
 });
+
+export interface IBook extends InferEntity<typeof Book> {};
 ```
 
   </TabItem>
