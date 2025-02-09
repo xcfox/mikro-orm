@@ -88,7 +88,7 @@
     "schedule": [
       "every weekday"
     ],
-    "ignoreDeps": [g
+    "ignoreDeps": [
       "mysql",
       "@docusaurus/*",
       "ts-jest",
