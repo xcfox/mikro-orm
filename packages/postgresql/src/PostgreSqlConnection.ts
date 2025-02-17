@@ -1,4 +1,4 @@
-import TypeOverrides from 'pg/lib/type-overrides';
+import TypeOverrides from 'pg/lib/type-overrides.js';
 import { Pool, type PoolConfig } from 'pg';
 import { PostgresDialect } from 'kysely';
 import array from 'postgres-array';
