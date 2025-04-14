@@ -60,7 +60,7 @@
   },
   "devDependencies": {
     "@mikro-orm/core": "^6.4.13",
-    "kysely": "https://pkg.pr.new/kysely-org/kysely/kysely@2b7007e"
+    "kysely": "0.28.0"
   },
   "peerDependencies": {
     "@mikro-orm/core": "^6.0.0",
