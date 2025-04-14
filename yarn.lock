@@ -1091,7 +1091,7 @@ __metadata:
   resolution: "@mikro-orm/mariadb@workspace:packages/mariadb"
   dependencies:
     "@mikro-orm/core": "npm:^6.4.13"
-    "@mikro-orm/knex": "npm:6.4.13"
+    "@mikro-orm/mysql": "npm:6.4.13"
     kysely: "npm:0.28.0"
   peerDependencies:
     "@mikro-orm/core": ^6.0.0
@@ -1160,7 +1160,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@mikro-orm/mysql@workspace:packages/mysql":
+"@mikro-orm/mysql@npm:6.4.13, @mikro-orm/mysql@workspace:packages/mysql":
   version: 0.0.0-use.local
   resolution: "@mikro-orm/mysql@workspace:packages/mysql"
   dependencies:
