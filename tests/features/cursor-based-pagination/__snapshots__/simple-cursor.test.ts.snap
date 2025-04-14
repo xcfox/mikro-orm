@@ -1,6 +1,6 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`simple cursor based pagination (mongo) exclude count when \`includeCount\` is set to false 1`] = `
+exports[`simple cursor based pagination (mongo) > exclude count when \`includeCount\` is set to false 1`] = `
 [
   "[query] db.getCollection('user').find({}, {}).sort([ [ '_id', 1 ] ]).limit(4).toArray();",
 ]
@@ -176,7 +176,7 @@ exports[`simple cursor based pagination (mongo) > using \`last\` and \`before\` 
 ]
 `;
 
-exports[`simple cursor based pagination (mssql) exclude count when \`includeCount\` is set to false 1`] = `
+exports[`simple cursor based pagination (mssql) > exclude count when \`includeCount\` is set to false 1`] = `
 [
   "[query] select top (4) [u0].* from [user] as [u0] order by [u0].[_id] asc",
 ]
@@ -352,7 +352,7 @@ exports[`simple cursor based pagination (mssql) > using \`last\` and \`before\` 
 ]
 `;
 
-exports[`simple cursor based pagination (mysql) exclude count when \`includeCount\` is set to false 1`] = `
+exports[`simple cursor based pagination (mysql) > exclude count when \`includeCount\` is set to false 1`] = `
 [
   "[query] select \`u0\`.* from \`user\` as \`u0\` order by \`u0\`.\`_id\` asc limit 4",
 ]
@@ -528,7 +528,7 @@ exports[`simple cursor based pagination (mysql) > using \`last\` and \`before\` 
 ]
 `;
 
-exports[`simple cursor based pagination (postgresql) exclude count when \`includeCount\` is set to false 1`] = `
+exports[`simple cursor based pagination (postgresql) > exclude count when \`includeCount\` is set to false 1`] = `
 [
   "[query] select "u0".* from "user" as "u0" order by "u0"."_id" asc limit 4",
 ]
@@ -704,7 +704,7 @@ exports[`simple cursor based pagination (postgresql) > using \`last\` and \`befo
 ]
 `;
 
-exports[`simple cursor based pagination (sqlite) exclude count when \`includeCount\` is set to false 1`] = `
+exports[`simple cursor based pagination (sqlite) > exclude count when \`includeCount\` is set to false 1`] = `
 [
   "[query] select \`u0\`.* from \`user\` as \`u0\` order by \`u0\`.\`_id\` asc limit 4",
 ]
