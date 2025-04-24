@@ -11,19 +11,16 @@ import {
   types,
   ReferenceKind,
   defineEntity,
-  defineEntityProperties,
 } from '@mikro-orm/core';
 import { MikroORM } from '@mikro-orm/sqlite';
 import { IsExact, assert } from 'conditional-type-checks';
 
-const p = defineEntity.properties;
-
 describe('define-entity', () => {
   const Bar = defineEntity({
     name: 'bar',
-    properties: {
+    properties: p => ({
       foo: p.string(),
-    },
+    }),
   });
 
   interface IBar extends InferEntity<typeof Bar> {}
@@ -31,7 +28,7 @@ describe('define-entity', () => {
   it('should define entity with properties', () => {
     const Foo = defineEntity({
       name: 'foo',
-      properties: {
+      properties: p => ({
         string: p.string(),
         number: p.float(),
         date: p.datetime(),
@@ -42,7 +39,7 @@ describe('define-entity', () => {
         text1: p.property('text'),
         float: p.property('float', { onCreate: () => 0 }),
         uuid: p.uuid(),
-      },
+      }),
     });
 
     interface IFooExpected {
@@ -83,18 +80,18 @@ describe('define-entity', () => {
   it('should define entity with properties from combination', () => {
     const WithTimes = defineEntity({
       name: 'WithTimes',
-      properties: {
+      properties: p => ({
         createdAt: p.datetime(),
         updatedAt: p.datetime(),
-      },
+      }),
     });
 
     const Foo = defineEntity({
       name: 'foo',
-      properties: {
+      properties: p => ({
         ...WithTimes.properties,
         bar: p.string(),
-      },
+      }),
     });
 
     interface IFooExpected {
@@ -121,7 +118,7 @@ describe('define-entity', () => {
   it('should define entity with nullable properties', () => {
     const Foo = defineEntity({
       name: 'foo',
-      properties: {
+      properties: p => ({
         directly: p.text(),
         required: p.text({ nullable: false }),
         nullable: p.text({ nullable: true }),
@@ -131,7 +128,7 @@ describe('define-entity', () => {
           onCreate: () => ({ bar: '' }),
         }),
         jsonNullable: p.json<{ bar: string }>({ nullable: true }),
-      },
+      }),
     });
 
     interface IFooExpected {
@@ -166,12 +163,12 @@ describe('define-entity', () => {
   it('should define entity with manyToOne relations', () => {
     const Foo = defineEntity({
       name: 'foo',
-      properties: {
+      properties: p => ({
         directly: p.manyToOne(() => Bar),
         ref: p.manyToOne(() => Bar, { ref: true }),
         nullableDirectly: p.manyToOne(() => Bar, { nullable: true }),
         nullableRef: p.manyToOne(() => Bar, { ref: true, nullable: true }),
-      },
+      }),
     });
 
     interface IFooExpected {
@@ -216,12 +213,12 @@ describe('define-entity', () => {
   it('should define entity with oneToOne relations', () => {
     const Foo = defineEntity({
       name: 'foo',
-      properties: {
+      properties: p => ({
         directly: p.oneToOne(() => Bar),
         ref: p.oneToOne(() => Bar, { ref: true }),
         nullableDirectly: p.oneToOne(() => Bar, { nullable: true }),
         nullableRef: p.oneToOne(() => Bar, { ref: true, nullable: true }),
-      },
+      }),
     });
 
     interface IFooExpected {
@@ -266,13 +263,13 @@ describe('define-entity', () => {
   it('should define entity with oneToMany relations', () => {
     const Foo = defineEntity({
       name: 'foo',
-      properties: {
+      properties: p => ({
         directly: p.oneToMany(() => Bar, { mappedBy: 'foo' }),
         nullableDirectly: p.oneToMany(() => Bar, {
           mappedBy: 'foo',
           nullable: true,
         }),
-      },
+      }),
     });
 
     interface IFooExpected {
@@ -306,13 +303,13 @@ describe('define-entity', () => {
   it('should define entity with manyToMany relations', () => {
     const Foo = defineEntity({
       name: 'foo',
-      properties: {
+      properties: p => ({
         directly: p.manyToMany(() => Bar, { mappedBy: 'foo' }),
         nullableDirectly: p.manyToMany(() => Bar, {
           mappedBy: 'foo',
           nullable: true,
         }),
-      },
+      }),
     });
 
     interface IFooExpected {
@@ -346,12 +343,12 @@ describe('define-entity', () => {
   it('should define entity with embedded properties', () => {
     const Foo = defineEntity({
       name: 'foo',
-      properties: {
+      properties: p => ({
         directly: p.embedded(() => Bar),
         ref: p.embedded(() => Bar, { ref: true }),
         nullableDirectly: p.embedded(() => Bar, { nullable: true }),
         nullableRef: p.embedded(() => Bar, { ref: true, nullable: true }),
-      },
+      }),
     });
 
     interface IFooExpected {
@@ -403,7 +400,7 @@ describe('define-entity', () => {
 
     const Foo = defineEntity({
       name: 'foo',
-      properties: {
+      properties: p => ({
         items: p.enum(ab),
         arrayItems: p.enum(ab, { array: true }),
         refItems: p.enum(ab, { ref: true }),
@@ -414,7 +411,7 @@ describe('define-entity', () => {
         enumRef: p.enum(() => Baz, { ref: true }),
         nullableEnum: p.enum(() => Baz, { nullable: true }),
         nullableEnumRef: p.enum(() => Baz, { ref: true, nullable: true }),
-      },
+      }),
     });
 
     interface IFooExpected {
@@ -464,10 +461,13 @@ describe('define-entity', () => {
   });
 
   it('should infer properties for circular reference entity', () => {
-    const FooProperties = defineEntityProperties({
-      bar: p.manyToOne(() => Bar, { ref: true }),
-      text: p.text(),
-    });
+    const FooProperties = defineEntity({
+      name: 'foo',
+      properties: p => ({
+        bar: p.manyToOne(() => Bar, { ref: true }),
+        text: p.text(),
+      }),
+    }).properties;
 
     interface IFoo extends InferEntityFromProperties<typeof FooProperties> {
       parent: Reference<IFoo>;
@@ -475,10 +475,10 @@ describe('define-entity', () => {
 
     const Foo: EntitySchema<IFoo> = defineEntity({
       name: 'foo',
-      properties: {
+      properties: p => ({
         ...FooProperties,
         parent: p.manyToOne(() => Foo, { ref: true }),
-      },
+      }),
     });
 
     interface IFooExpected {
@@ -493,7 +493,7 @@ describe('define-entity', () => {
   it('should infer Required properties', () => {
     const Foo = defineEntity({
       name: 'Foo',
-      properties: t => ({
+      properties: p => ({
         id: p.integer({ primary: true }),
         normal: p.string(),
         withNullable: p.string({ nullable: true }),
@@ -517,44 +517,53 @@ describe('define-entity', () => {
     assert<IsExact<RequiredFoo, RequiredFooExpected>>(true);
   });
 
-  const withId = defineEntityProperties({
-    id: p.integer({ primary: true }),
+  const withId = defineEntity({
+    name: 'withId',
+    properties: p => ({
+      id: p.integer({ primary: true }),
+    }),
   });
   const WithCreatedAt = defineEntity({
     name: 'WithCreatedAt',
-    properties: {
+    properties: p => ({
       createdAt: p.datetime({ onCreate: () => new Date() }),
-    },
+    }),
     abstract: true,
   });
-  const withUpdatedAt = {
-    updatedAt: p.datetime({
-      onCreate: () => new Date(),
-      onUpdate: () => new Date(),
+  const withUpdatedAt = defineEntity({
+    name: 'withUpdatedAt',
+    properties: p => ({
+      updatedAt: p.datetime({
+        onCreate: () => new Date(),
+        onUpdate: () => new Date(),
+      }),
     }),
-  };
-  const withDeletedAt = {
-    deletedAt: p.datetime({ nullable: true }),
-  };
+  });
+  const withDeletedAt = defineEntity({
+    name: 'withDeletedAt',
+    properties: p => ({
+      deletedAt: p.datetime({ nullable: true }),
+    }),
+  });
 
   const Composed = defineEntity({
     name: 'Composed',
-    properties: {
-      ...withId,
+    properties: p => ({
+      ...withId.properties,
       ...WithCreatedAt.properties,
-      ...withUpdatedAt,
-      ...withDeletedAt,
-    },
+      ...withUpdatedAt.properties,
+      ...withDeletedAt.properties,
+    }),
     indexes: [{ properties: ['createdAt'] }],
   });
 
   const Foo = defineEntity({
     name: 'Foo',
-    properties: {
+    properties: p => ({
       ...WithCreatedAt.properties,
       id: p.integer({ primary: true }),
       byDefault: p.text({ default: 'foo' }),
-    },
+    }),
   });
   let orm: MikroORM;
 

@@ -202,8 +202,3 @@ export function defineEntity<Properties extends Record<string, PropertyOptions<a
   return new EntitySchema({ properties, ...options } as any);
 }
 
-defineEntity.properties = propertyFactories;
-
-export function defineEntityProperties<Properties extends Record<string, PropertyOptions<any, unknown>>>(properties: ((factories: typeof propertyFactories) => Properties) | Properties): Properties {
-  return typeof properties === 'function' ? properties(propertyFactories) : properties;
-}
