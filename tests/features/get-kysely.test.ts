@@ -184,8 +184,6 @@ describe('InferKyselyDB', () => {
       description!: string;
       author!: User;
 
-      [PrimaryKeyProp]?: 'id';
-
     }
 
 
