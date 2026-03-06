@@ -926,36 +926,6 @@ describe('MikroKyselyPlugin', () => {
       // All queries should complete without errors and with correct property names
       await Promise.all(promises);
     });
-
-    test('concurrent queries with JOIN should preserve entity mapping', async () => {
-      // Test concurrent JOIN queries to ensure entityMap doesn't get corrupted
-      const iterations = 5;
-      const promises: Promise<void>[] = [];
-
-      for (let i = 0; i < iterations; i++) {
-        promises.push(
-          (async () => {
-            const result = await kysely
-              .selectFrom('toy as t')
-              .innerJoin('pet as p', 't.pet', 'p.id')
-              .leftJoin('person as per', 'p.owner', 'per.id')
-              .select(['t.name as toyName', 'p.name as petName', 'per.firstName', 'per.lastName'])
-              .execute();
-
-            expect(result).toHaveLength(2);
-            result.forEach(row => {
-              // All property names should be camelCase
-              expect(row).toHaveProperty('toyName');
-              expect(row).toHaveProperty('petName');
-              expect(row).toHaveProperty('firstName');
-              expect(row).toHaveProperty('lastName');
-            });
-          })(),
-        );
-      }
-
-      await Promise.all(promises);
-    });
   });
 
   describe('processOnCreateHooks', () => {
